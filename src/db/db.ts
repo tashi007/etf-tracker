@@ -53,7 +53,7 @@ function stripNullLotIds(transactions: Transaction[]): Transaction[] {
 
 export async function loadState(): Promise<State> {
   const bytes = await getVaultBytes();
-  if (!bytes) return DEFAULT_STATE;
+  if (!bytes) return { ...DEFAULT_STATE };
   try {
     const state = await loadStateFromSqlite(bytes);
     return {
@@ -62,7 +62,7 @@ export async function loadState(): Promise<State> {
     };
   } catch (e) {
     console.error("SQLite load failed", e);
-    return DEFAULT_STATE;
+    return { ...DEFAULT_STATE };
   }
 }
 
@@ -168,39 +168,4 @@ export async function getData(): Promise<State> {
 
 export async function setData(state: State): Promise<void> {
   await saveState(state);
-}
-
-export async function exportState(): Promise<string> {
-  const state = await loadState();
-  return JSON.stringify(state, null, 2);
-}
-
-export async function importState(jsonString: string): Promise<boolean> {
-  try {
-    const imported = JSON.parse(jsonString) as Partial<State>;
-    if (
-      imported.transactions === undefined ||
-      imported.targetAlloc === undefined
-    ) {
-      return false;
-    }
-    const merged: State = {
-      ...DEFAULT_STATE,
-      ...imported,
-      lots: imported.lots ?? [],
-      etfConfigs: imported.etfConfigs ?? DEFAULT_ETFS,
-      reminderSchedules: imported.reminderSchedules ?? [],
-      transactions: imported.transactions.map((tx) => ({
-        ...tx,
-        lotId: tx.lotId ?? null,
-      })),
-      dividends: imported.dividends ?? [],
-      priceAlerts: imported.priceAlerts ?? [],
-    };
-    await setVaultBytes(await saveStateToSqlite(merged));
-    return true;
-  } catch (e) {
-    console.error("Failed to import portfolio data", e);
-    return false;
-  }
 }

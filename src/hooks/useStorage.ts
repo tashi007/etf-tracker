@@ -11,9 +11,10 @@ import type {
 } from "../types";
 import {
   DEFAULT_STATE,
-  exportState as exportStateFromDb,
+  exportDatabaseBytes,
   getData as getDataFromDb,
-  importState as importStateIntoDb,
+  importDatabaseBytes,
+  loadState,
   migrate,
   saveState,
 } from "../db/db";
@@ -247,38 +248,15 @@ export function useStorage() {
     void setData({ ...stateRef.current, etfConfigs: configs });
   };
 
-  const exportData = async () => {
-    const dataStr = await exportStateFromDb();
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `etf-portfolio-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const downloadDatabase = async (): Promise<Uint8Array> => {
+    return exportDatabaseBytes();
   };
 
-  const importData = (jsonString: string): boolean => {
-    try {
-      const imported = JSON.parse(jsonString) as Partial<State>;
-      if (
-        imported.transactions === undefined ||
-        imported.targetAlloc === undefined
-      ) {
-        return false;
-      }
-
-      void importStateIntoDb(jsonString).then(async (success) => {
-        if (!success) return;
-        const loaded = await getDataFromDb();
-        stateRef.current = loaded;
-        setState(loaded);
-      });
-
-      return true;
-    } catch {
-      return false;
-    }
+  const importDatabase = async (bytes: Uint8Array): Promise<boolean> => {
+    const success = await importDatabaseBytes(bytes);
+    if (!success) return false;
+    await setData(await loadState());
+    return true;
   };
 
   const getData = async (): Promise<State> => getDataFromDb();
@@ -308,7 +286,7 @@ export function useStorage() {
     upsertReminderSchedule,
     applyCorporateAction,
     updateEtfConfigs,
-    exportData,
-    importData,
+    downloadDatabase,
+    importDatabase,
   };
 }
