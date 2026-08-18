@@ -61,8 +61,8 @@ function App() {
     state,
     addTransaction,
     deleteTransaction,
-    exportData,
-    importData,
+    downloadDatabase,
+    importDatabase,
     updateTargetAlloc,
     updateFortnightlyTarget,
     addDividend,
@@ -233,12 +233,27 @@ function App() {
     const reader = new FileReader();
     reader.onload = (ev) => {
       if (ev.target?.result) {
-        const success = importData(ev.target.result as string);
-        alert(success ? "Data imported successfully" : "Invalid file format");
+        void importDatabase(
+          new Uint8Array(ev.target.result as ArrayBuffer),
+        ).then((success) => {
+          alert(success ? "Data imported successfully" : "Invalid file format");
+        });
       }
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleExport = async () => {
+    const bytes = await downloadDatabase();
+    const blob = new Blob([bytes.slice()], { type: "application/x-sqlite3" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `etf-portfolio-${new Date().toISOString().slice(0, 10)}.db`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const emailBackup = () => {
@@ -287,10 +302,10 @@ function App() {
               <Settings size={18} />
             </button>
             <button
-              onClick={exportData}
+              onClick={() => void handleExport()}
               className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
             >
-              <Download size={14} className="inline mr-1" /> JSON
+              <Download size={14} className="inline mr-1" /> Download .db
             </button>
             <button
               onClick={() => exportTransactionsToCSV(state.transactions)}
@@ -325,7 +340,7 @@ function App() {
               type="file"
               ref={fileInputRef}
               onChange={handleImport}
-              accept=".json"
+              accept=".db"
               className="hidden"
             />
             <button
