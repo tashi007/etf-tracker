@@ -78,6 +78,12 @@ export async function exportDatabaseBytes(): Promise<Uint8Array> {
 
 export async function importDatabaseBytes(bytes: Uint8Array): Promise<boolean> {
   if (!(await validateDatabaseBytes(bytes))) return false;
+  try {
+    await loadStateFromSqlite(bytes);
+  } catch (e) {
+    console.error("SQLite import rejected", e);
+    return false;
+  }
   await setVaultBytes(bytes);
   return true;
 }
