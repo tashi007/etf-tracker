@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Lot, Transaction, TransactionType, DisposalMethod, EtfConfig } from "../types";
 
 interface Props {
@@ -24,19 +24,29 @@ export function TransactionForm({
   const [disposalMethod, setDisposalMethod] = useState<DisposalMethod>("FIFO");
   const [selectedLotIds, setSelectedLotIds] = useState<string[]>([]);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [pricePerUnit, setPricePerUnit] = useState("");
+  const [priceTouched, setPriceTouched] = useState(false);
+  const appliedSuggestionRef = useRef<string | null>(null);
 
-  // Pre-fill from suggestion
   useEffect(() => {
-    if (initialSuggestion) {
-      setEtf(initialSuggestion.etf);
-      setType("BUY");
-      const price = currentPrices[initialSuggestion.etf] ?? 1;
-      const units = Math.max(1, Math.round(initialSuggestion.amount / price));
-      setBuyUnits(units);
-    }
+    if (!initialSuggestion) return;
+    const key = `${initialSuggestion.etf}:${initialSuggestion.amount}`;
+    if (appliedSuggestionRef.current === key) return;
+    appliedSuggestionRef.current = key;
+    setEtf(initialSuggestion.etf);
+    setType("BUY");
+    const price = currentPrices[initialSuggestion.etf] ?? 1;
+    const units = Math.max(1, Math.round(initialSuggestion.amount / price));
+    setBuyUnits(units);
+    setPriceTouched(false);
   }, [initialSuggestion, currentPrices]);
 
   const marketPrice = currentPrices[etf] ?? 0;
+  const marketPriceStr = marketPrice > 0 ? marketPrice.toFixed(2) : "";
+  const effectivePrice = priceTouched ? pricePerUnit : marketPriceStr;
+
+  const parsedPrice = parseFloat(effectivePrice);
+  const isValidPrice = Number.isFinite(parsedPrice) && parsedPrice > 0;
   const isValidBuyUnits = Number.isInteger(buyUnits) && buyUnits > 0;
   const availableLots = lots.filter(
     (lot) => lot.symbol === etf && lot.units > 0,
@@ -44,7 +54,7 @@ export function TransactionForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (marketPrice <= 0) return;
+    if (!isValidPrice) return;
 
     const unitsToSubmit = type === "BUY" ? buyUnits : sellUnits;
     if (type === "BUY" && !isValidBuyUnits) return;
@@ -63,11 +73,10 @@ export function TransactionForm({
       etf,
       type,
       units: parseFloat(String(unitsToSubmit)) || 0,
-      pricePerUnit: marketPrice,
+      pricePerUnit: parsedPrice,
       disposalMethod: type === "SELL" ? disposalMethod : undefined,
       lotIds: type === "SELL" ? selectedLotIds : undefined,
     });
-    // Reset form
     if (type === "SELL") {
       setSellUnits(10);
       setSelectedLotIds([]);
@@ -80,8 +89,11 @@ export function TransactionForm({
       className="bg-white p-4 rounded-lg shadow flex flex-wrap gap-3 items-end"
     >
       <div>
-        <label className="block text-sm font-medium mb-1">ETF</label>
+        <label htmlFor="tx-etf" className="block text-sm font-medium mb-1">
+          ETF
+        </label>
         <select
+          id="tx-etf"
           value={etf}
           onChange={(e) => setEtf(e.target.value)}
           className="border rounded p-2"
@@ -94,8 +106,11 @@ export function TransactionForm({
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Type</label>
+        <label htmlFor="tx-type" className="block text-sm font-medium mb-1">
+          Type
+        </label>
         <select
+          id="tx-type"
           value={type}
           onChange={(e) => setType(e.target.value as TransactionType)}
           className="border rounded p-2"
@@ -106,8 +121,11 @@ export function TransactionForm({
       </div>
       {type === "BUY" ? (
         <div>
-          <label className="block text-sm font-medium mb-1">Units</label>
+          <label htmlFor="tx-units" className="block text-sm font-medium mb-1">
+            Units
+          </label>
           <input
+            id="tx-units"
             type="number"
             value={buyUnits}
             onChange={(e) => setBuyUnits(Number(e.target.value))}
@@ -119,8 +137,14 @@ export function TransactionForm({
       ) : (
         <div className="flex flex-wrap gap-3 items-end">
           <div>
-            <label className="block text-sm font-medium mb-1">Units</label>
+            <label
+              htmlFor="tx-sell-units"
+              className="block text-sm font-medium mb-1"
+            >
+              Units
+            </label>
             <input
+              id="tx-sell-units"
               type="number"
               value={sellUnits}
               onChange={(e) => setSellUnits(Number(e.target.value))}
@@ -130,8 +154,14 @@ export function TransactionForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Lot method</label>
+            <label
+              htmlFor="tx-disposal"
+              className="block text-sm font-medium mb-1"
+            >
+              Lot method
+            </label>
             <select
+              id="tx-disposal"
               value={disposalMethod}
               onChange={(e) =>
                 setDisposalMethod(e.target.value as DisposalMethod)
@@ -178,22 +208,41 @@ export function TransactionForm({
         </div>
       )}
       <div>
-        <label className="block text-sm font-medium mb-1">
+        <label htmlFor="tx-price" className="block text-sm font-medium mb-1">
           Price per unit ($)
         </label>
-        <input
-          type="number"
-          value={marketPrice > 0 ? marketPrice.toFixed(2) : ""}
-          readOnly
-          className="border rounded p-2 w-28"
-          step="0.01"
-          min="0"
-          placeholder="Unavailable"
-        />
+        <div className="flex items-center gap-1">
+          <input
+            id="tx-price"
+            type="number"
+            value={effectivePrice}
+            onChange={(e) => {
+              setPriceTouched(true);
+              setPricePerUnit(e.target.value);
+            }}
+            className="border rounded p-2 w-28"
+            step="0.01"
+            min="0"
+            placeholder="Unavailable"
+            inputMode="decimal"
+          />
+          {priceTouched && marketPrice > 0 && (
+            <button
+              type="button"
+              onClick={() => setPriceTouched(false)}
+              className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+            >
+              Use market price
+            </button>
+          )}
+        </div>
       </div>
       <div>
-        <label className="block text-sm font-medium mb-1">Date</label>
+        <label htmlFor="tx-date" className="block text-sm font-medium mb-1">
+          Date
+        </label>
         <input
+          id="tx-date"
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
@@ -203,7 +252,7 @@ export function TransactionForm({
       <button
         type="submit"
         disabled={
-          marketPrice <= 0 ||
+          !isValidPrice ||
           (type === "BUY" && !isValidBuyUnits) ||
           (type === "SELL" && sellUnits <= 0)
         }
