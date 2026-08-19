@@ -11,6 +11,7 @@ import type {
   TargetAlloc,
   Transaction,
 } from "../types";
+import { getDefaultTargetAlloc } from "./defaults";
 
 function isNode(): boolean {
   return typeof process !== "undefined" && process.versions?.node !== undefined;
@@ -37,7 +38,10 @@ export async function getSqlJs(): Promise<SqlJsStatic> {
         return initSqlJs({ wasmBinary: await loadWasmBinaryFromDisk() });
       }
       return initSqlJs({ locateFile: () => sqlWasmUrl });
-    })();
+    })().catch((err) => {
+      sqlJsPromise = null;
+      throw err;
+    });
   }
   return sqlJsPromise;
 }
@@ -339,10 +343,12 @@ export async function saveStateToSqlite(state: State): Promise<Uint8Array> {
       "INSERT INTO settings (key, value) VALUES (?,?)",
     );
     insertSettingStmt.run(["targetAlloc", JSON.stringify(state.targetAlloc)]);
-    insertSettingStmt.run([
-      "fortnightlyTargetAlloc",
-      JSON.stringify(state.fortnightlyTargetAlloc ?? {}),
-    ]);
+    if (state.fortnightlyTargetAlloc) {
+      insertSettingStmt.run([
+        "fortnightlyTargetAlloc",
+        JSON.stringify(state.fortnightlyTargetAlloc),
+      ]);
+    }
     insertSettingStmt.run(["schemaVersion", String(SQLITE_SCHEMA_VERSION)]);
     insertSettingStmt.free();
 
@@ -372,13 +378,11 @@ export async function loadStateFromSqlite(bytes: Uint8Array): Promise<State> {
     if (settings["targetAlloc"] && typeof alloc === "object" && alloc !== null) {
       targetAlloc = {
         alloc,
-        holdingPeriodDays:
-          holdingPeriodDays ?? (Number.isFinite(holdingPeriodDays) ? holdingPeriodDays : undefined),
-        driftTolerancePercent:
-          driftTolerancePercent ?? (Number.isFinite(driftTolerancePercent) ? driftTolerancePercent : undefined),
+        holdingPeriodDays,
+        driftTolerancePercent,
       };
     } else {
-      targetAlloc = { alloc: {}, holdingPeriodDays: 365, driftTolerancePercent: 5 };
+      targetAlloc = getDefaultTargetAlloc(etfConfigs);
     }
 
     const fortnightlyTargetAlloc = settings["fortnightlyTargetAlloc"]
@@ -411,7 +415,10 @@ export async function validateDatabaseBytes(bytes: Uint8Array): Promise<boolean>
         tableNames.includes("transactions") &&
         tableNames.includes("lots") &&
         tableNames.includes("dividends") &&
-        tableNames.includes("etf_configs")
+        tableNames.includes("price_alerts") &&
+        tableNames.includes("reminder_schedules") &&
+        tableNames.includes("etf_configs") &&
+        tableNames.includes("settings")
       );
     } finally {
       db.close();

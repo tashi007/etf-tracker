@@ -8,6 +8,7 @@ import {
   importDatabaseBytes,
   migrate,
 } from "./db";
+import { getSqlJs } from "./sqlite";
 import { DEFAULT_STATE } from "./defaults";
 import type { State } from "../types";
 
@@ -43,6 +44,21 @@ describe("db facade", () => {
   it("importDatabaseBytes rejects corrupt bytes and keeps data untouched", async () => {
     await saveState(state);
     const ok = await importDatabaseBytes(new Uint8Array([1, 2, 3, 4, 66]));
+    expect(ok).toBe(false);
+    const after = await loadState();
+    expect(after).toEqual(state);
+  });
+
+  it("rejects a valid-but-foreign sqlite file and keeps data untouched", async () => {
+    await saveState(state);
+    const SQL = await getSqlJs();
+    const db = new SQL.Database();
+    db.exec(
+      "CREATE TABLE transactions (id TEXT); CREATE TABLE lots (id TEXT); CREATE TABLE dividends (id TEXT); CREATE TABLE etf_configs (symbol TEXT);",
+    );
+    const foreignBytes = db.export();
+    db.close();
+    const ok = await importDatabaseBytes(foreignBytes);
     expect(ok).toBe(false);
     const after = await loadState();
     expect(after).toEqual(state);

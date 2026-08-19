@@ -91,6 +91,16 @@ describe("sqlite storage engine", () => {
     expect(loaded).toEqual(DEFAULT_STATE);
   });
 
+  it("keeps fortnightlyTargetAlloc undefined when absent", async () => {
+    const state: State = {
+      ...DEFAULT_STATE,
+      fortnightlyTargetAlloc: undefined,
+    };
+    const bytes = await saveStateToSqlite(state);
+    const loaded = await loadStateFromSqlite(bytes);
+    expect(loaded.fortnightlyTargetAlloc).toBeUndefined();
+  });
+
   it("rejects invalid bytes", async () => {
     const junk = new Uint8Array([1, 2, 3, 4, 5, 99]);
     expect(await validateDatabaseBytes(junk)).toBe(false);
