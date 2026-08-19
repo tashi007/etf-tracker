@@ -15,6 +15,7 @@ import { useTheme } from "./context/ThemeContext";
 import { requestNotificationPermission } from "./utils/notifications";
 import { AllocationChart } from "./components/AllocationChart";
 import { TransactionForm } from "./components/TransactionForm";
+import { LoadingScreen } from "./components/LoadingScreen";
 import { TransactionList } from "./components/TransactionList";
 import { PortfolioSummary } from "./components/PortfolioSummary";
 import { FortnightlyPlanner } from "./components/FortnightlyPlanner";
@@ -59,6 +60,7 @@ function ChartSkeleton() {
 function App() {
   const {
     state,
+    loading,
     addTransaction,
     deleteTransaction,
     downloadDatabase,
@@ -77,7 +79,6 @@ function App() {
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [pricesLastUpdated, setPricesLastUpdated] = useState<string>("");
   const [holdings, setHoldings] = useState<Holding[]>([]);
-  const [loadingPrices, setLoadingPrices] = useState(true);
   const [portfolioHistory, setPortfolioHistory] = useState<
     { date: string; value: number }[]
   >([]);
@@ -111,8 +112,6 @@ function App() {
         if (data.length > 0) setPricesLastUpdated(data[0].lastUpdated);
       } catch (err) {
         console.error(err);
-      } finally {
-        setLoadingPrices(false);
       }
     }
     loadPrices();
@@ -272,12 +271,8 @@ function App() {
     return state.transactions.filter((tx) => tx.etf === symbol).length;
   };
 
-  if (loadingPrices) {
-    return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-        Loading...
-      </div>
-    );
+  if (loading) {
+    return <LoadingScreen />;
   }
 
   return (
