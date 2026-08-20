@@ -29,13 +29,17 @@ export function TransactionForm({
   const appliedSuggestionRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!initialSuggestion) return;
+    if (!initialSuggestion) {
+      appliedSuggestionRef.current = null;
+      return;
+    }
     const key = `${initialSuggestion.etf}:${initialSuggestion.amount}`;
     if (appliedSuggestionRef.current === key) return;
+    const price = currentPrices[initialSuggestion.etf];
+    if (!Number.isFinite(price) || price <= 0) return;
     appliedSuggestionRef.current = key;
     setEtf(initialSuggestion.etf);
     setType("BUY");
-    const price = currentPrices[initialSuggestion.etf] ?? 1;
     const units = Math.max(1, Math.round(initialSuggestion.amount / price));
     setBuyUnits(units);
     setPriceTouched(false);

@@ -131,4 +131,53 @@ describe("TransactionForm price per unit", () => {
     );
     expect(priceInput().value).toBe("150");
   });
+
+  it("applies a planner suggestion only once a real price is available", () => {
+    const { rerender } = setup({
+      currentPrices: {},
+      initialSuggestion: { etf: "VAS", amount: 10000 },
+    });
+    const units = screen.getByLabelText("Units") as HTMLInputElement;
+    expect(units.value).toBe("10");
+
+    rerender(
+      <TransactionForm
+        onAdd={vi.fn()}
+        currentPrices={{ VAS: 100 }}
+        lots={lots}
+        etfConfigs={etfs}
+        initialSuggestion={{ etf: "VAS", amount: 10000 }}
+      />,
+    );
+    expect(units.value).toBe("100");
+  });
+
+  it("re-applies the same suggestion after it is cleared", () => {
+    const { rerender } = setup({
+      initialSuggestion: { etf: "VAS", amount: 10000 },
+    });
+    const units = screen.getByLabelText("Units") as HTMLInputElement;
+    expect(units.value).toBe("100");
+
+    rerender(
+      <TransactionForm
+        onAdd={vi.fn()}
+        currentPrices={{ VAS: 100 }}
+        lots={lots}
+        etfConfigs={etfs}
+      />,
+    );
+    fireEvent.change(units, { target: { value: "5" } });
+
+    rerender(
+      <TransactionForm
+        onAdd={vi.fn()}
+        currentPrices={{ VAS: 100 }}
+        lots={lots}
+        etfConfigs={etfs}
+        initialSuggestion={{ etf: "VAS", amount: 10000 }}
+      />,
+    );
+    expect(units.value).toBe("100");
+  });
 });
