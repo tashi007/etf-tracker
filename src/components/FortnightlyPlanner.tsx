@@ -192,7 +192,7 @@ export function FortnightlyPlanner({
             </div>
           ))}
         </div>
-        <div className="text-xs text-gray-500 mt-2">
+        <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
           {Math.abs(targetSum - 100) < 0.01 ? (
             <span className="font-medium text-emerald-600 dark:text-emerald-400">
               Valid (sums to 100%)
@@ -232,7 +232,7 @@ export function FortnightlyPlanner({
               ${recommendation.amount.toFixed(2)}
             </span>
           </div>
-          <p className="text-xs text-gray-700 mb-3">{recommendation.reason}</p>
+          <p className="text-xs text-slate-700 dark:text-slate-200 mb-3">{recommendation.reason}</p>
           <Button
             className="w-full"
             onClick={() =>

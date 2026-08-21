@@ -44,7 +44,11 @@ export function BenchmarkChart({ portfolioHistory, fromDate, toDate }: Props) {
   }, [fromDate, toDate]);
 
   if (loading)
-    return <div className="text-sm text-gray-500">Loading benchmark...</div>;
+    return (
+      <div className="text-sm text-slate-500 dark:text-slate-400">
+        Loading benchmark...
+      </div>
+    );
   if (benchmarkData.length === 0) return null;
 
   // Merge portfolioHistory (which is already normalized to start=100? we need to normalize)

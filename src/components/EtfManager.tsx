@@ -83,17 +83,17 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
           >
             <button
               onClick={() => handleToggle(etf.symbol)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
               title={etf.enabled ? "Disable" : "Enable"}
             >
               {etf.enabled ? (
                 <ToggleRight size={20} className="text-emerald-600" />
               ) : (
-                <ToggleLeft size={20} className="text-gray-400" />
+                <ToggleLeft size={20} className="text-slate-400 dark:text-slate-500" />
               )}
             </button>
             <span
-              className={`font-mono text-sm w-16 ${etf.enabled ? "" : "text-gray-400"}`}
+              className={`font-mono text-sm w-16 ${etf.enabled ? "" : "text-slate-400 dark:text-slate-500"}`}
             >
               {etf.symbol}
             </span>
@@ -121,7 +121,7 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
             />
             <button
               onClick={() => handleRemove(etf.symbol)}
-              className="text-red-500 hover:text-red-700 p-1"
+              className="text-rose-500 hover:text-rose-700 dark:text-rose-400 p-1"
               title="Remove ETF"
             >
               <Trash2 size={16} />
@@ -132,7 +132,7 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
 
       <div className="flex flex-wrap gap-2 items-end">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Symbol</label>
+          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Symbol</label>
           <input
             type="text"
             value={newSymbol}
@@ -145,15 +145,15 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">
+          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">
             Yahoo symbol
           </label>
-          <span className="rounded-lg border px-2 py-1 text-sm bg-slate-100 dark:bg-slate-800 text-gray-500 w-28 inline-block">
+          <span className="rounded-lg border px-2 py-1 text-sm bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 w-28 inline-block">
             {newSymbol.trim() ? `${newSymbol.trim().toUpperCase()}.AX` : "?.AX"}
           </span>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Name</label>
+          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1">Name</label>
           <input
             type="text"
             value={newName}
