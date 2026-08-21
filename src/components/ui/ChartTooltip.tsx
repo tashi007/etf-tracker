@@ -1,6 +1,9 @@
 import { TooltipContentProps } from "recharts";
 
-type ChartTooltipProps = TooltipContentProps<number, string> & {
+type ChartTooltipProps = Omit<
+  Partial<TooltipContentProps<number, string>>,
+  "formatter"
+> & {
   formatter?: (value: number, name: string) => string;
 };
 

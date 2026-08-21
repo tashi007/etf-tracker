@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card } from "./ui/Card";
+import { ChartTooltip } from "./ui/ChartTooltip";
 import { DailyValuation, ReturnPeriod } from "../utils/returns";
 import { filterHistoryByPeriod } from "../utils/historyRange";
 
@@ -33,7 +34,9 @@ export function PortfolioValueChart({ history, period }: Props) {
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="date" />
               <YAxis tickFormatter={(v) => `$${v}`} />
-              <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
+              <Tooltip
+                content={<ChartTooltip formatter={(v) => `$${v.toFixed(2)}`} />}
+              />
               <Line
                 type="monotone"
                 dataKey="value"

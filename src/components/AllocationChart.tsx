@@ -6,13 +6,15 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { Card } from "./ui/Card";
+import { ChartTooltip } from "./ui/ChartTooltip";
 
 interface Props {
   current: Record<string, number>;
   target: Record<string, number>;
 }
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+const COLORS = ["#4f46e5", "#0ea5e9", "#10b981", "#f59e0b"];
 
 export function AllocationChart({ current, target }: Props) {
   const data = Object.keys(current).map((key) => ({
@@ -22,10 +24,7 @@ export function AllocationChart({ current, target }: Props) {
   }));
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-3">
-        Current vs Target Allocation (by value)
-      </h3>
+    <Card title="Current vs Target Allocation (by value)">
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
@@ -46,11 +45,13 @@ export function AllocationChart({ current, target }: Props) {
               />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip
+            content={<ChartTooltip formatter={(v) => `${v.toFixed(1)}%`} />}
+          />
           <Legend />
         </PieChart>
       </ResponsiveContainer>
-      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+      <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-300">
         {data.map((item) => (
           <div key={item.name} className="flex justify-between">
             <span className="font-medium">{item.name}:</span>
@@ -60,6 +61,6 @@ export function AllocationChart({ current, target }: Props) {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

@@ -10,6 +10,8 @@ import {
   Legend,
 } from "recharts";
 import { fetchHistoricalPrices } from "../utils/prices";
+import { Card } from "./ui/Card";
+import { ChartTooltip } from "./ui/ChartTooltip";
 
 interface Props {
   portfolioHistory: { date: string; value: number }[];
@@ -65,19 +67,20 @@ export function BenchmarkChart({ portfolioHistory, fromDate, toDate }: Props) {
     .filter((m) => m.benchmark !== null);
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mt-4">
-      <h3 className="text-lg font-semibold mb-3">Portfolio vs S&P 500 (IVV)</h3>
+    <Card title="Portfolio vs S&P 500 (IVV)">
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={merged}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis tickFormatter={(v) => `${v.toFixed(0)}`} />
-          <Tooltip formatter={(value) => Number(value).toFixed(1)} />
+          <Tooltip
+            content={<ChartTooltip formatter={(v) => v.toFixed(1)} />}
+          />
           <Legend />
           <Line
             type="monotone"
             dataKey="portfolio"
-            stroke="#3b82f6"
+            stroke="#4f46e5"
             strokeWidth={2}
             name="Your Portfolio"
             dot={false}
@@ -92,9 +95,9 @@ export function BenchmarkChart({ portfolioHistory, fromDate, toDate }: Props) {
           />
         </LineChart>
       </ResponsiveContainer>
-      <p className="text-xs text-gray-400 mt-2">
+      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
         Normalized to 100 at start date.
       </p>
-    </div>
+    </Card>
   );
 }
