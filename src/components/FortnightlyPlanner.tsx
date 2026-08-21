@@ -7,6 +7,8 @@ import {
   sendNotification,
 } from "../utils/notifications";
 import { calculateBuyRecommendation } from "../utils/recommendation";
+import { Input } from "./ui/Field";
+import { Button } from "./ui/Button";
 
 const ProjectionChart = lazy(() =>
   import("./ProjectionChart").then((m) => ({
@@ -16,7 +18,7 @@ const ProjectionChart = lazy(() =>
 
 function ChartSkeleton() {
   return (
-    <div className="h-80 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+    <div className="h-80 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
   );
 }
 
@@ -43,7 +45,6 @@ export function FortnightlyPlanner({
   const [fortnightlyAmount, setFortnightlyAmount] = useState(1000);
   const enabledEtfs = etfConfigs.filter((e) => e.enabled);
 
-  // Calculate current allocation by value across all enabled ETFs
   const totalPortfolioValue = holdings.reduce((sum, h) => sum + h.currentValue, 0);
 
   const currentPct: Record<string, number> = {};
@@ -54,7 +55,6 @@ export function FortnightlyPlanner({
         : 0;
   }
 
-  // Calculate buy recommendation
   const recommendation = calculateBuyRecommendation(
     holdings,
     fortnightlyAmount,
@@ -156,33 +156,29 @@ export function FortnightlyPlanner({
   );
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-4">
-        Fortnightly Contribution Planner
-      </h3>
-
-      {/* Contribution Amount */}
+    <div className="space-y-4">
       <div className="mb-4">
         <label className="block text-sm font-medium">
           Fortnightly investment ($)
         </label>
-        <input
-          type="number"
+        <Input
           value={fortnightlyAmount}
           onChange={(e) => handleAmountChange(Number(e.target.value))}
-          className="border rounded p-2 w-40"
+          type="number"
+          className="w-40"
         />
       </div>
 
-      {/* Target Allocation for Fortnightly Buys */}
-      <div className="mb-4 p-3 bg-blue-50 rounded">
-        <label className="block text-sm font-medium mb-2">
+      <div className="mb-4 rounded-lg bg-indigo-50 p-3 dark:bg-indigo-500/10">
+        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
           Target allocation for fortnightly buys
         </label>
         <div className="grid grid-cols-2 gap-2">
           {enabledEtfs.map((etf) => (
             <div key={etf.symbol} className="flex items-center gap-2">
-              <label className="text-xs text-gray-600 w-12">{etf.symbol} %</label>
+              <label className="w-12 text-xs text-slate-600 dark:text-slate-300">
+                {etf.symbol} %
+              </label>
               <input
                 type="number"
                 min="0"
@@ -191,28 +187,30 @@ export function FortnightlyPlanner({
                 onChange={(e) =>
                   handleTargetChange(etf.symbol, Number(e.target.value))
                 }
-                className="border rounded p-1 w-16 text-sm"
+                className="w-16 rounded-lg border border-slate-300 bg-white p-1 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               />
             </div>
           ))}
         </div>
-        <div className="text-xs text-gray-500 mt-2">
+        <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
           {Math.abs(targetSum - 100) < 0.01 ? (
-            <span className="text-green-600 font-medium">Valid (sums to 100%)</span>
+            <span className="font-medium text-emerald-600 dark:text-emerald-400">
+              Valid (sums to 100%)
+            </span>
           ) : (
-            <span className="text-red-600 font-medium">
+            <span className="font-medium text-rose-600 dark:text-rose-400">
               Must sum to 100% (currently {targetSum.toFixed(1)}%)
             </span>
           )}
         </div>
       </div>
 
-      {/* Current Allocation */}
-      <div className="mb-4 p-3 bg-gray-50 rounded">
+      <div className="mb-4 rounded-lg bg-slate-100 p-3 dark:bg-slate-800/60">
         <p className="text-sm font-medium mb-2">Current allocation:</p>
-        <div className="grid grid-cols-2 gap-1 text-sm">
+        <div className="grid grid-cols-2 gap-1 text-sm text-slate-600 dark:text-slate-300">
           {enabledEtfs.map((etf) => {
-            const value = holdings.find((h) => h.etf === etf.symbol)?.currentValue ?? 0;
+            const value =
+              holdings.find((h) => h.etf === etf.symbol)?.currentValue ?? 0;
             const pct = currentPct[etf.symbol] ?? 0;
             return (
               <span key={etf.symbol}>
@@ -223,41 +221,39 @@ export function FortnightlyPlanner({
         </div>
       </div>
 
-      {/* Buy Recommendation */}
       {recommendation.symbol && (
-        <div className="mb-4 p-3 bg-green-50 rounded border border-green-200">
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-500/30 dark:bg-emerald-500/10">
           <p className="font-medium text-sm mb-2">Buy Recommendation:</p>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-lg font-bold text-green-700">
+            <span className="text-lg font-bold text-emerald-700 dark:text-emerald-400">
               {recommendation.symbol}
             </span>
             <span className="text-lg font-semibold">
               ${recommendation.amount.toFixed(2)}
             </span>
           </div>
-          <p className="text-xs text-gray-700 mb-3">{recommendation.reason}</p>
-          <button
+          <p className="text-xs text-slate-700 dark:text-slate-200 mb-3">{recommendation.reason}</p>
+          <Button
+            className="w-full"
             onClick={() =>
               onUseSuggestion(recommendation.symbol, recommendation.amount)
             }
-            className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 w-full"
           >
             Use this suggestion
-          </button>
+          </Button>
         </div>
       )}
 
-      {/* Reminder */}
-      <label className="mb-3 flex items-center gap-2 text-sm text-gray-700">
+      <label className="mb-3 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
         <input
           type="checkbox"
           checked={reminderSchedule?.enabled ?? false}
           onChange={() => void handleReminderToggle()}
+          className="accent-indigo-600"
         />
         Remind me every fortnight
       </label>
 
-      {/* Projection Chart */}
       <Suspense fallback={<ChartSkeleton />}>
         <ProjectionChart
           holdings={holdings}

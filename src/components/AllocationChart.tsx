@@ -3,16 +3,17 @@ import {
   Pie,
   Cell,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
+import { Card } from "./ui/Card";
+import { ChartTooltip } from "./ui/ChartTooltip";
 
 interface Props {
   current: Record<string, number>;
   target: Record<string, number>;
 }
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+const COLORS = ["#4f46e5", "#0ea5e9", "#10b981", "#f59e0b"];
 
 export function AllocationChart({ current, target }: Props) {
   const data = Object.keys(current).map((key) => ({
@@ -22,10 +23,7 @@ export function AllocationChart({ current, target }: Props) {
   }));
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-3">
-        Current vs Target Allocation (by value)
-      </h3>
+    <Card title="Current vs Target Allocation (by value)">
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
@@ -46,20 +44,26 @@ export function AllocationChart({ current, target }: Props) {
               />
             ))}
           </Pie>
-          <Tooltip />
-          <Legend />
+          <Tooltip
+            content={<ChartTooltip formatter={(v) => `${v.toFixed(1)}%`} />}
+          />
         </PieChart>
       </ResponsiveContainer>
-      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-        {data.map((item) => (
-          <div key={item.name} className="flex justify-between">
-            <span className="font-medium">{item.name}:</span>
-            <span>
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-slate-600 dark:text-slate-300">
+        {data.map((item, index) => (
+          <div key={item.name} className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+            />
+            <span className="font-medium">{item.name}</span>
+            <span className="ml-auto tabular-nums">
               {item.current.toFixed(1)}% (target {item.target}%)
             </span>
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

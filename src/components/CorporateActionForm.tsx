@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { Dividend, EtfConfig, Transaction } from "../types";
+import { Button } from "./ui/Button";
+import { Field, Input, Select } from "./ui/Field";
 
 interface Props {
   dividends: Dividend[];
@@ -69,48 +71,40 @@ export function CorporateActionForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-4 rounded-lg shadow mt-4"
-    >
-      <h3 className="text-lg font-semibold mb-3">Corporate Actions</h3>
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="flex flex-wrap gap-3 items-end">
-        <div>
-          <label className="block text-sm font-medium mb-1">Action</label>
-          <select
+        <Field label="Action" htmlFor="ca-action">
+          <Select
+            id="ca-action"
             value={actionType}
             onChange={(event) =>
               setActionType(event.target.value as "SPLIT" | "DRP")
             }
-            className="border rounded p-2"
           >
             <option value="SPLIT">Split</option>
             <option value="DRP">Dividend reinvestment</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">ETF</label>
-          <select
+          </Select>
+        </Field>
+        <Field label="ETF" htmlFor="ca-etf">
+          <Select
+            id="ca-etf"
             value={etf}
             onChange={(event) =>
               setEtf(event.target.value as Transaction["etf"])
             }
-            className="border rounded p-2"
           >
             {enabledEtfs.map((e) => (
               <option key={e.symbol} value={e.symbol}>
                 {e.symbol}
               </option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
         {actionType === "SPLIT" ? (
           <>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Ratio numerator
-              </label>
-              <input
+            <Field label="Ratio numerator" htmlFor="ca-num">
+              <Input
+                id="ca-num"
                 type="number"
                 min="1"
                 step="1"
@@ -118,14 +112,12 @@ export function CorporateActionForm({
                 onChange={(event) =>
                   setSplitNumerator(Number(event.target.value))
                 }
-                className="border rounded p-2 w-24"
+                className="w-24"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Ratio denominator
-              </label>
-              <input
+            </Field>
+            <Field label="Ratio denominator" htmlFor="ca-den">
+              <Input
+                id="ca-den"
                 type="number"
                 min="1"
                 step="1"
@@ -133,23 +125,21 @@ export function CorporateActionForm({
                 onChange={(event) =>
                   setSplitDenominator(Number(event.target.value))
                 }
-                className="border rounded p-2 w-24"
+                className="w-24"
               />
-            </div>
-            <div className="text-sm text-gray-600">
+            </Field>
+            <div className="text-sm text-slate-500 dark:text-slate-400">
               Total ratio: {splitRatio.toFixed(2)}x
             </div>
           </>
         ) : (
           <>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Dividend entry
-              </label>
-              <select
+            <Field label="Dividend entry" htmlFor="ca-div">
+              <Select
+                id="ca-div"
                 value={dividendId}
                 onChange={(event) => setDividendId(event.target.value)}
-                className="border rounded p-2 min-w-56"
+                className="min-w-56"
               >
                 <option value="">Select a dividend</option>
                 {filteredDividends.map((dividend) => {
@@ -161,13 +151,11 @@ export function CorporateActionForm({
                     </option>
                   );
                 })}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Reinvestment price
-              </label>
-              <input
+              </Select>
+            </Field>
+            <Field label="Reinvestment price" htmlFor="ca-price">
+              <Input
+                id="ca-price"
                 type="number"
                 min="0"
                 step="0.01"
@@ -175,13 +163,13 @@ export function CorporateActionForm({
                 onChange={(event) =>
                   setReinvestmentPrice(Number(event.target.value))
                 }
-                className="border rounded p-2 w-32"
+                className="w-32"
                 placeholder={
                   currentPrice > 0 ? currentPrice.toFixed(2) : "0.00"
                 }
               />
-            </div>
-            <div className="text-sm text-gray-600">
+            </Field>
+            <div className="text-sm text-slate-500 dark:text-slate-400">
               Reinvesting at{" "}
               {effectiveReinvestmentPrice > 0
                 ? `$${effectiveReinvestmentPrice.toFixed(2)}`
@@ -189,21 +177,15 @@ export function CorporateActionForm({
             </div>
           </>
         )}
-        <div>
-          <label className="block text-sm font-medium mb-1">Date</label>
-          <input
+        <Field label="Date" htmlFor="ca-date">
+          <Input
+            id="ca-date"
             type="date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="border rounded p-2"
           />
-        </div>
-        <button
-          type="submit"
-          className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-        >
-          Apply Action
-        </button>
+        </Field>
+        <Button type="submit">Apply Action</Button>
       </div>
     </form>
   );

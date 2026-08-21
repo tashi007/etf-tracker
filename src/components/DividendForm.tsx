@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Dividend, EtfConfig } from "../types";
+import { Button } from "./ui/Button";
+import { Input, Select } from "./ui/Field";
 
 interface Props {
   onAdd: (d: Dividend) => void;
@@ -32,53 +34,40 @@ export function DividendForm({ onAdd, etfConfigs }: Props) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mt-4"
-    >
-      <h3 className="text-md font-semibold mb-2 text-gray-900 dark:text-white">
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
         Record Dividend
-      </h3>
+      </p>
       <div className="flex flex-wrap gap-2">
-        <select
-          value={etf}
-          onChange={(e) => setEtf(e.target.value)}
-          className="border rounded p-1 dark:bg-gray-700"
-        >
+        <Select value={etf} onChange={(e) => setEtf(e.target.value)}>
           {enabledEtfs.map((e) => (
             <option key={e.symbol} value={e.symbol}>
               {e.symbol}
             </option>
           ))}
-        </select>
-        <input
+        </Select>
+        <Input
           type="number"
           step="0.01"
           placeholder="$ per unit"
           value={amountPerUnit}
           onChange={(e) => setAmountPerUnit(parseFloat(e.target.value))}
-          className="border rounded p-1 w-28 dark:bg-gray-700"
+          className="w-28"
         />
-        <input
+        <Input
           type="number"
           step="1"
           placeholder="Units held"
           value={units}
           onChange={(e) => setUnits(parseInt(e.target.value))}
-          className="border rounded p-1 w-28 dark:bg-gray-700"
+          className="w-28"
         />
-        <input
+        <Input
           type="date"
           value={exDate}
           onChange={(e) => setExDate(e.target.value)}
-          className="border rounded p-1 dark:bg-gray-700"
         />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700"
-        >
-          Add Dividend
-        </button>
+        <Button type="submit">Add Dividend</Button>
       </div>
     </form>
   );

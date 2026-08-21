@@ -15,8 +15,18 @@ import { useTheme } from "./context/ThemeContext";
 import { requestNotificationPermission } from "./utils/notifications";
 import { AllocationChart } from "./components/AllocationChart";
 import { TransactionForm } from "./components/TransactionForm";
+import { LoadingScreen } from "./components/LoadingScreen";
 import { TransactionList } from "./components/TransactionList";
-import { PortfolioSummary } from "./components/PortfolioSummary";
+import { SegmentedControl } from "./components/ui/SegmentedControl";
+import { Tabs } from "./components/ui/Tabs";
+import { Card } from "./components/ui/Card";
+import { Button } from "./components/ui/Button";
+import { InfoPopover } from "./components/ui/InfoPopover";
+import { Modal } from "./components/ui/Modal";
+import { KpiGrid } from "./components/KpiGrid";
+import { HoldingsTable } from "./components/HoldingsTable";
+import { computePortfolioMetrics } from "./utils/portfolioMetrics";
+import type { ReturnPeriod } from "./utils/returns";
 import { FortnightlyPlanner } from "./components/FortnightlyPlanner";
 import { TargetAllocEditor } from "./components/TargetAllocEditor";
 import { DividendForm } from "./components/DividendForm";
@@ -52,13 +62,14 @@ const BenchmarkChart = lazy(() =>
 
 function ChartSkeleton() {
   return (
-    <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+    <div className="h-96 animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800" />
   );
 }
 
 function App() {
   const {
     state,
+    loading,
     addTransaction,
     deleteTransaction,
     downloadDatabase,
@@ -77,7 +88,6 @@ function App() {
   const [prices, setPrices] = useState<Record<string, number>>({});
   const [pricesLastUpdated, setPricesLastUpdated] = useState<string>("");
   const [holdings, setHoldings] = useState<Holding[]>([]);
-  const [loadingPrices, setLoadingPrices] = useState(true);
   const [portfolioHistory, setPortfolioHistory] = useState<
     { date: string; value: number }[]
   >([]);
@@ -90,6 +100,26 @@ function App() {
     amount: number;
   } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [period, setPeriod] = useState<ReturnPeriod>("1Y");
+  const [showAddTx, setShowAddTx] = useState(false);
+  const [txSuccessMessage, setTxSuccessMessage] = useState<string | null>(null);
+  const txSuccessTimer = useRef<number | null>(null);
+
+  function showTxSuccess(message: string) {
+    if (txSuccessTimer.current !== null)
+      window.clearTimeout(txSuccessTimer.current);
+    setTxSuccessMessage(message);
+    txSuccessTimer.current = window.setTimeout(
+      () => setTxSuccessMessage(null),
+      4000,
+    );
+  }
+  const [chartTab, setChartTab] = useState<
+    "value" | "benchmark" | "allocation"
+  >("value");
+  const [sidebarTab, setSidebarTab] = useState<
+    "planner" | "rebalance" | "targets" | "corp" | "dividends" | "alerts"
+  >("planner");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
 
@@ -111,8 +141,6 @@ function App() {
         if (data.length > 0) setPricesLastUpdated(data[0].lastUpdated);
       } catch (err) {
         console.error(err);
-      } finally {
-        setLoadingPrices(false);
       }
     }
     loadPrices();
@@ -227,6 +255,17 @@ function App() {
   const totalCurrentValue = getTotalCurrentValue(holdings);
   const currentAlloc = calculateAllocByValue(holdings);
 
+  const metrics = computePortfolioMetrics({
+    holdings,
+    transactions: state.transactions,
+    dividends: state.dividends,
+    lots: state.lots,
+    portfolioHistory,
+    totalInvested,
+    totalCurrentValue,
+    period,
+  });
+
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -272,70 +311,58 @@ function App() {
     return state.transactions.filter((tx) => tx.etf === symbol).length;
   };
 
-  if (loadingPrices) {
-    return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-        Loading...
-      </div>
-    );
+  if (loading) {
+    return <LoadingScreen />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
             ETF Portfolio Tracker
           </h1>
-          <div className="flex gap-2">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded bg-gray-200 dark:bg-gray-700"
-            >
+          {pricesLastUpdated && (
+            <span className="hidden text-xs text-slate-500 sm:inline dark:text-slate-400">
+              Prices updated {new Date(pricesLastUpdated).toLocaleTimeString()}
+            </span>
+          )}
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button variant="ghost" onClick={toggleTheme} title="Toggle theme" className="w-10 px-0">
               {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="p-2 rounded bg-gray-200 dark:bg-gray-700"
-              title="ETF Settings"
-            >
+            </Button>
+            <Button variant="ghost" onClick={() => setShowSettings(!showSettings)} title="ETF Settings" className="w-10 px-0">
               <Settings size={18} />
-            </button>
-            <button
-              onClick={() => void handleExport()}
-              className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
-            >
-              <Download size={14} className="inline mr-1" /> Download .db
-            </button>
-            <button
-              onClick={() => exportTransactionsToCSV(state.transactions)}
-              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-            >
-              <FileSpreadsheet size={14} className="inline mr-1" /> CSV
-            </button>
-            <button
+            </Button>
+            <Button variant="secondary" onClick={() => void handleExport()} title="Download .db">
+              <Download size={14} />
+              <span className="hidden md:inline">Download .db</span>
+            </Button>
+            <Button variant="secondary" onClick={() => exportTransactionsToCSV(state.transactions)} title="Export CSV">
+              <FileSpreadsheet size={14} />
+              <span className="hidden md:inline">CSV</span>
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() =>
                 exportTaxLotReportToCSV(
                   state.transactions,
                   state.targetAlloc.holdingPeriodDays ?? 365,
                 )
               }
-              className="bg-emerald-600 text-white px-3 py-1 rounded text-sm hover:bg-emerald-700"
+              title="Tax lot report (CSV)"
             >
-              Tax lot report (CSV)
-            </button>
-            <button
-              onClick={emailBackup}
-              className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-            >
-              <Mail size={14} className="inline mr-1" /> Backup
-            </button>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
-            >
-              <Upload size={14} className="inline mr-1" /> Import
-            </button>
+              <FileSpreadsheet size={14} />
+              <span className="hidden md:inline">Tax lot report</span>
+            </Button>
+            <Button variant="secondary" onClick={emailBackup} title="Backup JSON">
+              <Mail size={14} />
+              <span className="hidden md:inline">Backup</span>
+            </Button>
+            <Button variant="secondary" onClick={() => fileInputRef.current?.click()} title="Import .db">
+              <Upload size={14} />
+              <span className="hidden md:inline">Import</span>
+            </Button>
             <input
               type="file"
               ref={fileInputRef}
@@ -343,15 +370,15 @@ function App() {
               accept=".db"
               className="hidden"
             />
-            <button
-              onClick={requestNotificationPermission}
-              className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
-            >
-              <Bell size={14} className="inline mr-1" /> Notify
-            </button>
+            <Button variant="secondary" onClick={requestNotificationPermission} title="Enable notifications">
+              <Bell size={14} />
+              <span className="hidden md:inline">Notify</span>
+            </Button>
           </div>
         </div>
+      </header>
 
+      <main className="px-4 py-6">
         {showSettings && (
           <div className="mb-6">
             <EtfManager
@@ -362,121 +389,211 @@ function App() {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2">
-            <PortfolioSummary
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                  Performance
+                </h2>
+                <SegmentedControl
+                  ariaLabel="Performance range"
+                  value={period}
+                  onChange={setPeriod}
+                  options={[
+                    { value: "1M", label: "1M" },
+                    { value: "3M", label: "3M" },
+                    { value: "1Y", label: "1Y" },
+                    { value: "5Y", label: "5Y" },
+                    { value: "ITD", label: "ITD" },
+                  ]}
+                />
+              </div>
+              <KpiGrid metrics={metrics} period={period} />
+            </section>
+
+            <HoldingsTable
               holdings={holdings}
-              transactions={state.transactions}
-              totalInvested={totalInvested}
-              totalCurrentValue={totalCurrentValue}
-              dividends={state.dividends}
-              targetAlloc={state.targetAlloc}
-              lots={state.lots}
-              etfConfigs={state.etfConfigs}
-              portfolioHistory={portfolioHistory}
-              pricesLastUpdated={pricesLastUpdated}
-            />
-          </div>
-          <div>
-            <TargetAllocEditor
               targetAlloc={state.targetAlloc}
               enabledSymbols={enabledSymbols}
-              onUpdate={updateTargetAlloc}
+              pricesLastUpdated={pricesLastUpdated}
             />
+
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <Tabs
+                  ariaLabel="Chart views"
+                  tabs={[
+                    { id: "value", label: "Portfolio Value" },
+                    { id: "benchmark", label: "vs S&P 500 (IVV)" },
+                    { id: "allocation", label: "Allocation" },
+                  ]}
+                  active={chartTab}
+                  onChange={(id) =>
+                    setChartTab(
+                      id === "benchmark"
+                        ? "benchmark"
+                        : id === "allocation"
+                          ? "allocation"
+                          : "value",
+                    )
+                  }
+                />
+                <InfoPopover text="Switch between portfolio value over time, benchmark comparison, and allocation breakdown." />
+              </div>
+              <div className="pt-4">
+                {chartTab === "value" && (
+                  <Suspense fallback={<ChartSkeleton />}>
+                    <PortfolioValueChart
+                      history={portfolioHistory}
+                      period={period}
+                    />
+                  </Suspense>
+                )}
+                {chartTab === "benchmark" &&
+                  (historyDates.from ? (
+                    <Suspense fallback={<ChartSkeleton />}>
+                      <BenchmarkChart
+                        portfolioHistory={portfolioHistory}
+                        fromDate={historyDates.from}
+                        toDate={historyDates.to}
+                      />
+                    </Suspense>
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Add transactions to compare against the benchmark.
+                    </p>
+                  ))}
+                {chartTab === "allocation" && (
+                  <AllocationChart
+                    current={currentAlloc}
+                    target={state.targetAlloc.alloc}
+                  />
+                )}
+              </div>
+            </div>
+
+            <Card>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  Transactions
+                </h2>
+                <Button onClick={() => setShowAddTx(true)}>+ Add Transaction</Button>
+              </div>
+              {txSuccessMessage && (
+                <p
+                  role="status"
+                  className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                >
+                  {txSuccessMessage}
+                </p>
+              )}
+              <div className="mt-4">
+                <TransactionList
+                  transactions={state.transactions}
+                  onDelete={deleteTransaction}
+                  onDeleted={() => showTxSuccess("Transaction deleted.")}
+                />
+              </div>
+              <Modal
+                open={showAddTx}
+                title="Add Transaction"
+                onClose={() => setShowAddTx(false)}
+              >
+                <TransactionForm
+                  onAdd={(tx) => {
+                    addTransaction(tx);
+                    setSuggestedTransaction(null);
+                    setShowAddTx(false);
+                    showTxSuccess("Transaction added.");
+                  }}
+                  currentPrices={prices}
+                  lots={state.lots}
+                  etfConfigs={state.etfConfigs}
+                  initialSuggestion={suggestedTransaction}
+                />
+              </Modal>
+            </Card>
           </div>
-        </div>
 
-        <div className="mb-6">
-          <Suspense fallback={<ChartSkeleton />}>
-            <PortfolioValueChart
-              transactions={state.transactions}
-              etfConfigs={state.etfConfigs}
-            />
-          </Suspense>
-        </div>
-
-        {historyDates.from && (
-          <div className="mb-6">
-            <Suspense fallback={<ChartSkeleton />}>
-              <BenchmarkChart
-                portfolioHistory={portfolioHistory}
-                fromDate={historyDates.from}
-                toDate={historyDates.to}
+          <div>
+            <Card className="lg:sticky lg:top-24">
+              <Tabs
+                ariaLabel="Tools"
+                tabs={[
+                  { id: "planner", label: "Planner" },
+                  { id: "rebalance", label: "Rebalance" },
+                  { id: "targets", label: "Targets" },
+                  { id: "corp", label: "Corp Actions" },
+                  { id: "dividends", label: "Dividends" },
+                  { id: "alerts", label: "Alerts" },
+                ]}
+                active={sidebarTab}
+                onChange={(id) => setSidebarTab(id as typeof sidebarTab)}
               />
-            </Suspense>
+              <div className="pt-4">
+                {sidebarTab === "planner" && (
+                  <FortnightlyPlanner
+                    holdings={holdings}
+                    reminderSchedule={state.reminderSchedules[0] ?? null}
+                    onReminderScheduleChange={upsertReminderSchedule}
+                    fortnightlyTargetAlloc={
+                      state.fortnightlyTargetAlloc ?? { VAS: 40, VGS: 60 }
+                    }
+                    onUpdateFortnightlyTarget={updateFortnightlyTarget}
+                    etfConfigs={state.etfConfigs}
+                    onUseSuggestion={(etf, amount) => {
+                      setSuggestedTransaction({ etf, amount });
+                      setShowAddTx(true);
+                    }}
+                  />
+                )}
+                {sidebarTab === "rebalance" && (
+                  <RebalanceSuggestions
+                    holdings={holdings}
+                    targetAlloc={state.targetAlloc}
+                    enabledSymbols={enabledSymbols}
+                  />
+                )}
+                {sidebarTab === "targets" && (
+                  <TargetAllocEditor
+                    targetAlloc={state.targetAlloc}
+                    enabledSymbols={enabledSymbols}
+                    onUpdate={updateTargetAlloc}
+                  />
+                )}
+                {sidebarTab === "corp" && (
+                  <CorporateActionForm
+                    dividends={state.dividends}
+                    currentPrices={prices}
+                    etfConfigs={state.etfConfigs}
+                    onApplyCorporateAction={applyCorporateAction}
+                  />
+                )}
+                {sidebarTab === "dividends" && (
+                  <div className="space-y-4">
+                    <DividendForm onAdd={addDividend} etfConfigs={state.etfConfigs} />
+                    <DividendList
+                      dividends={state.dividends}
+                      onDelete={deleteDividend}
+                    />
+                  </div>
+                )}
+                {sidebarTab === "alerts" && (
+                  <PriceAlertSetup
+                    alerts={state.priceAlerts}
+                    currentPrices={prices}
+                    etfConfigs={state.etfConfigs}
+                    onAdd={addPriceAlert}
+                    onUpdate={updatePriceAlert}
+                    onDelete={deletePriceAlert}
+                  />
+                )}
+              </div>
+            </Card>
           </div>
-        )}
-
-        <div className="mb-6">
-          <AllocationChart
-            current={currentAlloc}
-            target={state.targetAlloc.alloc}
-          />
         </div>
-
-        <div className="mb-6">
-          <RebalanceSuggestions
-            holdings={holdings}
-            targetAlloc={state.targetAlloc}
-            enabledSymbols={enabledSymbols}
-          />
-        </div>
-
-        <div className="mb-6">
-          <FortnightlyPlanner
-            holdings={holdings}
-            reminderSchedule={state.reminderSchedules[0] ?? null}
-            onReminderScheduleChange={upsertReminderSchedule}
-            fortnightlyTargetAlloc={
-              state.fortnightlyTargetAlloc ?? { VAS: 40, VGS: 60 }
-            }
-            onUpdateFortnightlyTarget={updateFortnightlyTarget}
-            etfConfigs={state.etfConfigs}
-            onUseSuggestion={(etf, amount) => {
-              setSuggestedTransaction({ etf, amount });
-            }}
-          />
-        </div>
-
-        <div className="mb-6">
-          <CorporateActionForm
-            dividends={state.dividends}
-            currentPrices={prices}
-            etfConfigs={state.etfConfigs}
-            onApplyCorporateAction={applyCorporateAction}
-          />
-        </div>
-
-        <div className="mb-6">
-          <TransactionForm
-            onAdd={(tx) => {
-              addTransaction(tx);
-              setSuggestedTransaction(null);
-            }}
-            currentPrices={prices}
-            lots={state.lots}
-            etfConfigs={state.etfConfigs}
-            initialSuggestion={suggestedTransaction}
-          />
-        </div>
-
-        <TransactionList
-          transactions={state.transactions}
-          onDelete={deleteTransaction}
-        />
-
-        <DividendForm onAdd={addDividend} etfConfigs={state.etfConfigs} />
-        <DividendList dividends={state.dividends} onDelete={deleteDividend} />
-
-        <PriceAlertSetup
-          alerts={state.priceAlerts}
-          currentPrices={prices}
-          etfConfigs={state.etfConfigs}
-          onAdd={addPriceAlert}
-          onUpdate={updatePriceAlert}
-          onDelete={deletePriceAlert}
-        />
-      </div>
+      </main>
     </div>
   );
 }

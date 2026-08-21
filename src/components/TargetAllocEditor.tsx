@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { TargetAlloc } from "../types";
 import { DEFAULT_ETF_SYMBOLS } from "../types";
+import { Button } from "./ui/Button";
 
 interface Props {
   targetAlloc: TargetAlloc;
@@ -41,14 +42,15 @@ export function TargetAllocEditor({ targetAlloc, enabledSymbols, onUpdate }: Pro
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-3">Target Allocation</h3>
+    <div className="space-y-3">
       <div className="space-y-3">
         {symbols.map((etf) => {
           const pct = (localAlloc.alloc[etf] as number) ?? 0;
           return (
             <div key={etf}>
-              <label className="block text-sm font-medium">{etf}</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                {etf}
+              </label>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -59,22 +61,22 @@ export function TargetAllocEditor({ targetAlloc, enabledSymbols, onUpdate }: Pro
                   onChange={(e) =>
                     handleChange(etf, Number(e.target.value))
                   }
-                  className="flex-1"
+                  className="accent-indigo-600 flex-1"
                 />
-                <span className="w-12 text-right">{pct}%</span>
+                <span className="w-12 text-right tabular-nums text-slate-600 dark:text-slate-300">
+                  {pct}%
+                </span>
               </div>
             </div>
           );
         })}
       </div>
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-      <button
-        onClick={handleSave}
-        disabled={!!error}
-        className="mt-3 bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50"
-      >
+      {error && (
+        <p className="mt-2 text-sm text-rose-600 dark:text-rose-400">{error}</p>
+      )}
+      <Button onClick={handleSave} disabled={!!error}>
         Save Target Allocation
-      </button>
+      </Button>
     </div>
   );
 }

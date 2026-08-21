@@ -38,9 +38,8 @@ export function RebalanceSuggestions({ holdings, targetAlloc, enabledSymbols }: 
 
   if (!overweight && !underweight) {
     return (
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h3 className="text-lg font-semibold mb-3">Rebalance Suggestions</h3>
-        <p className="text-sm text-gray-600">
+      <div>
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           Portfolio is within the current drift tolerance of {driftTolerance}%.
         </p>
       </div>
@@ -55,22 +54,29 @@ export function RebalanceSuggestions({ holdings, targetAlloc, enabledSymbols }: 
     : 0;
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-3">Rebalance Suggestions</h3>
-      <div className="space-y-2 text-sm">
+    <div>
+      <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
         {overweight && (
           <p>
-            Sell about ${overweightSell.toFixed(2)} of{" "}
-            <strong>{overweight.symbol}</strong>.
+            Sell about{" "}
+            <span className="text-rose-600 dark:text-rose-400">
+              ${overweightSell.toFixed(2)}
+            </span>{" "}
+            of <strong>{overweight.symbol}</strong>.
           </p>
         )}
         {underweight && (
           <p>
-            Buy about ${underweightBuy.toFixed(2)} of{" "}
-            <strong>{underweight.symbol}</strong>.
+            Buy about{" "}
+            <span className="text-emerald-600 dark:text-emerald-400">
+              ${underweightBuy.toFixed(2)}
+            </span>{" "}
+            of <strong>{underweight.symbol}</strong>.
           </p>
         )}
-        <p className="text-gray-500">Drift tolerance: ±{driftTolerance}%.</p>
+        <p className="text-slate-500 dark:text-slate-400">
+          Drift tolerance: ±{driftTolerance}%.
+        </p>
       </div>
     </div>
   );
