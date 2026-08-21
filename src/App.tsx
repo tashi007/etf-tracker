@@ -460,7 +460,7 @@ function App() {
               </div>
               <InfoPopover
                 text="Switch between portfolio value over time, benchmark comparison, and allocation breakdown."
-                className="absolute bottom-2 right-2"
+                className="absolute bottom-2 left-2"
               />
             </div>
 

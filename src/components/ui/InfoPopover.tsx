@@ -34,14 +34,14 @@ export function InfoPopover({ text, className = "" }: Props) {
         aria-label="About this card"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold leading-none text-slate-400 hover:border-indigo-400 hover:text-indigo-500 dark:border-slate-600 dark:text-slate-500 dark:hover:border-indigo-400 dark:hover:text-indigo-400"
+        className="flex h-5 w-5 items-center justify-center rounded-full border border-sky-300 text-[10px] font-bold leading-none text-sky-500 hover:border-sky-400 hover:text-sky-600 dark:border-sky-700 dark:text-sky-400 dark:hover:border-sky-500 dark:hover:text-sky-300"
       >
         i
       </button>
       {open && (
         <div
           role="note"
-          className="absolute bottom-full right-0 z-20 mb-2 w-64 rounded-lg border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600 shadow-lg dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+          className="absolute bottom-full left-0 z-20 mb-2 w-64 rounded-lg border border-sky-200 bg-sky-50 p-3 text-xs leading-relaxed text-sky-900 shadow-lg dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
         >
           {text}
         </div>

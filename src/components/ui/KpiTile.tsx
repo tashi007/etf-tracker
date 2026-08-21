@@ -38,7 +38,7 @@ export function KpiTile({
         {value}
       </p>
       {info && (
-        <InfoPopover text={info} className="absolute bottom-2 right-2" />
+        <InfoPopover text={info} className="absolute bottom-2 left-2" />
       )}
     </div>
   );
