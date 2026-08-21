@@ -10,6 +10,7 @@ import {
   Legend,
 } from "recharts";
 import { fetchHistoricalPrices } from "../utils/prices";
+import { compactNumber } from "../utils/money";
 import { Card } from "./ui/Card";
 import { ChartTooltip } from "./ui/ChartTooltip";
 
@@ -76,7 +77,7 @@ export function BenchmarkChart({ portfolioHistory, fromDate, toDate }: Props) {
         <LineChart data={merged}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
-          <YAxis width={70} tickFormatter={(v) => `${Number(v).toFixed(0)}`} />
+          <YAxis width={70} tickFormatter={compactNumber} />
           <Tooltip
             content={<ChartTooltip formatter={(v) => v.toFixed(1)} />}
           />

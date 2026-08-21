@@ -23,7 +23,7 @@ export function StatTile({ label, value, trend = "neutral", info }: Props) {
         {value}
       </p>
       {info && (
-        <InfoPopover text={info} className="absolute bottom-1.5 left-1.5" />
+        <InfoPopover text={info} className="absolute bottom-1.5 right-1.5" />
       )}
     </div>
   );

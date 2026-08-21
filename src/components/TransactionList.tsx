@@ -18,6 +18,7 @@ import {
 interface Props {
   transactions: Transaction[];
   onDelete: (id: string) => void;
+  onDeleted?: () => void;
 }
 
 const PAGE_SIZES = [20, 50, "all"] as const;
@@ -32,7 +33,7 @@ const columns: { key: TransactionSortKey; label: string; align: "left" | "right"
   { key: "realizedGain", label: "Realized Gain", align: "right" },
 ];
 
-export function TransactionList({ transactions, onDelete }: Props) {
+export function TransactionList({ transactions, onDelete, onDeleted }: Props) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<TransactionSortKey>("date");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -238,6 +239,7 @@ export function TransactionList({ transactions, onDelete }: Props) {
             onClick={() => {
               if (pendingDelete) onDelete(pendingDelete.id);
               setPendingDelete(null);
+              onDeleted?.();
             }}
           >
             Delete

@@ -12,9 +12,15 @@ const tx: Transaction = {
   pricePerUnit: 90,
 };
 
-function renderList() {
+function renderList(onDeleted?: () => void) {
   const onDelete = vi.fn();
-  render(<TransactionList transactions={[tx]} onDelete={onDelete} />);
+  render(
+    <TransactionList
+      transactions={[tx]}
+      onDelete={onDelete}
+      onDeleted={onDeleted}
+    />,
+  );
   return onDelete;
 }
 
@@ -40,5 +46,13 @@ describe("TransactionList delete confirmation", () => {
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(onDelete).toHaveBeenCalledWith("t1");
     expect(screen.getByRole("dialog").className).toContain("invisible");
+  });
+
+  it("notifies onDeleted after confirming", () => {
+    const onDeleted = vi.fn();
+    renderList(onDeleted);
+    fireEvent.click(screen.getByTitle("Delete transaction"));
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(onDeleted).toHaveBeenCalledTimes(1);
   });
 });

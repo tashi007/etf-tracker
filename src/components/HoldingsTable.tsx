@@ -108,7 +108,7 @@ export function HoldingsTable({
       </p>
       <InfoPopover
         text="Live position sizes and values at latest prices. Drift compares each ETF's actual weight to its target: IN means within tolerance."
-        className="absolute bottom-2 left-2"
+        className="absolute bottom-2 right-2"
       />
     </Card>
   );

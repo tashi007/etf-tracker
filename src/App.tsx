@@ -102,8 +102,18 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [period, setPeriod] = useState<ReturnPeriod>("1Y");
   const [showAddTx, setShowAddTx] = useState(false);
-  const [txSuccessVisible, setTxSuccessVisible] = useState(false);
+  const [txSuccessMessage, setTxSuccessMessage] = useState<string | null>(null);
   const txSuccessTimer = useRef<number | null>(null);
+
+  function showTxSuccess(message: string) {
+    if (txSuccessTimer.current !== null)
+      window.clearTimeout(txSuccessTimer.current);
+    setTxSuccessMessage(message);
+    txSuccessTimer.current = window.setTimeout(
+      () => setTxSuccessMessage(null),
+      4000,
+    );
+  }
   const [chartTab, setChartTab] = useState<
     "value" | "benchmark" | "allocation"
   >("value");
@@ -460,7 +470,7 @@ function App() {
               </div>
               <InfoPopover
                 text="Switch between portfolio value over time, benchmark comparison, and allocation breakdown."
-                className="absolute bottom-2 left-2"
+                className="absolute bottom-2 right-2"
               />
             </div>
 
@@ -471,18 +481,19 @@ function App() {
                 </h2>
                 <Button onClick={() => setShowAddTx(true)}>+ Add Transaction</Button>
               </div>
-              {txSuccessVisible && (
+              {txSuccessMessage && (
                 <p
                   role="status"
                   className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
                 >
-                  Transaction added.
+                  {txSuccessMessage}
                 </p>
               )}
               <div className="mt-4">
                 <TransactionList
                   transactions={state.transactions}
                   onDelete={deleteTransaction}
+                  onDeleted={() => showTxSuccess("Transaction deleted.")}
                 />
               </div>
               <Modal
@@ -495,13 +506,7 @@ function App() {
                     addTransaction(tx);
                     setSuggestedTransaction(null);
                     setShowAddTx(false);
-                    if (txSuccessTimer.current !== null)
-                      window.clearTimeout(txSuccessTimer.current);
-                    setTxSuccessVisible(true);
-                    txSuccessTimer.current = window.setTimeout(
-                      () => setTxSuccessVisible(false),
-                      4000,
-                    );
+                    showTxSuccess("Transaction added.");
                   }}
                   currentPrices={prices}
                   lots={state.lots}
