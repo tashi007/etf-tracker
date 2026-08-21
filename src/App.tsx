@@ -419,25 +419,28 @@ function App() {
               pricesLastUpdated={pricesLastUpdated}
             />
 
-            <div className="relative">
-              <Tabs
-                ariaLabel="Chart views"
-                tabs={[
-                  { id: "value", label: "Portfolio Value" },
-                  { id: "benchmark", label: "vs S&P 500 (IVV)" },
-                  { id: "allocation", label: "Allocation" },
-                ]}
-                active={chartTab}
-                onChange={(id) =>
-                  setChartTab(
-                    id === "benchmark"
-                      ? "benchmark"
-                      : id === "allocation"
-                        ? "allocation"
-                        : "value",
-                  )
-                }
-              />
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <Tabs
+                  ariaLabel="Chart views"
+                  tabs={[
+                    { id: "value", label: "Portfolio Value" },
+                    { id: "benchmark", label: "vs S&P 500 (IVV)" },
+                    { id: "allocation", label: "Allocation" },
+                  ]}
+                  active={chartTab}
+                  onChange={(id) =>
+                    setChartTab(
+                      id === "benchmark"
+                        ? "benchmark"
+                        : id === "allocation"
+                          ? "allocation"
+                          : "value",
+                    )
+                  }
+                />
+                <InfoPopover text="Switch between portfolio value over time, benchmark comparison, and allocation breakdown." />
+              </div>
               <div className="pt-4">
                 {chartTab === "value" && (
                   <Suspense fallback={<ChartSkeleton />}>
@@ -468,10 +471,6 @@ function App() {
                   />
                 )}
               </div>
-              <InfoPopover
-                text="Switch between portfolio value over time, benchmark comparison, and allocation breakdown."
-                className="absolute bottom-2 right-2"
-              />
             </div>
 
             <Card>

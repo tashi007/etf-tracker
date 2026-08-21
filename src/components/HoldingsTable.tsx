@@ -1,6 +1,5 @@
 import { Badge } from "./ui/Badge";
 import { Card } from "./ui/Card";
-import { InfoPopover } from "./ui/InfoPopover";
 import { Holding, TargetAlloc } from "../types";
 import { money } from "../utils/money";
 
@@ -24,7 +23,10 @@ export function HoldingsTable({
   const driftTolerance = targetAlloc.driftTolerancePercent ?? 5;
 
   return (
-    <Card title="Holdings">
+    <Card
+      title="Holdings"
+      info="Live position sizes and values at latest prices. Drift compares each ETF's actual weight to its target: IN means within tolerance."
+    >
       <div className="max-h-96 overflow-auto rounded-lg border border-slate-200 dark:border-slate-800">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
@@ -106,10 +108,6 @@ export function HoldingsTable({
         {pricesLastUpdated &&
           ` Prices updated ${new Date(pricesLastUpdated).toLocaleTimeString()}.`}
       </p>
-      <InfoPopover
-        text="Live position sizes and values at latest prices. Drift compares each ETF's actual weight to its target: IN means within tolerance."
-        className="absolute bottom-2 right-2"
-      />
     </Card>
   );
 }

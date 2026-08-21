@@ -41,7 +41,7 @@ export function InfoPopover({ text, className = "" }: Props) {
       {open && (
         <div
           role="note"
-          className="absolute bottom-full right-0 z-20 mb-2 w-64 rounded-lg border border-sky-200 bg-sky-50 p-3 text-xs leading-relaxed text-sky-900 shadow-lg dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
+          className="absolute left-0 top-full z-20 mt-2 w-64 rounded-lg border border-sky-200 bg-sky-50 p-3 text-xs leading-relaxed text-sky-900 shadow-lg dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100"
         >
           {text}
         </div>

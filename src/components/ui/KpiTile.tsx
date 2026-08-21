@@ -27,9 +27,12 @@ export function KpiTile({
   return (
     <div className="relative min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-2">
-        <p className="min-w-0 truncate text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          {label}
-        </p>
+        <span className="flex min-w-0 items-center gap-1">
+          <p className="min-w-0 truncate text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            {label}
+          </p>
+          {info && <InfoPopover text={info} />}
+        </span>
         {badge}
       </div>
       <p
@@ -37,9 +40,6 @@ export function KpiTile({
       >
         {value}
       </p>
-      {info && (
-        <InfoPopover text={info} className="absolute bottom-2 right-2" />
-      )}
     </div>
   );
 }
