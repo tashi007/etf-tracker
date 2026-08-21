@@ -17,7 +17,12 @@ import { AllocationChart } from "./components/AllocationChart";
 import { TransactionForm } from "./components/TransactionForm";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { TransactionList } from "./components/TransactionList";
-import { PortfolioSummary } from "./components/PortfolioSummary";
+import { SegmentedControl } from "./components/ui/SegmentedControl";
+import { Button } from "./components/ui/Button";
+import { KpiGrid } from "./components/KpiGrid";
+import { HoldingsTable } from "./components/HoldingsTable";
+import { computePortfolioMetrics } from "./utils/portfolioMetrics";
+import type { ReturnPeriod } from "./utils/returns";
 import { FortnightlyPlanner } from "./components/FortnightlyPlanner";
 import { TargetAllocEditor } from "./components/TargetAllocEditor";
 import { DividendForm } from "./components/DividendForm";
@@ -53,7 +58,7 @@ const BenchmarkChart = lazy(() =>
 
 function ChartSkeleton() {
   return (
-    <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+    <div className="h-96 animate-pulse rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800" />
   );
 }
 
@@ -91,6 +96,7 @@ function App() {
     amount: number;
   } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [period, setPeriod] = useState<ReturnPeriod>("1Y");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
 
@@ -226,6 +232,17 @@ function App() {
   const totalCurrentValue = getTotalCurrentValue(holdings);
   const currentAlloc = calculateAllocByValue(holdings);
 
+  const metrics = computePortfolioMetrics({
+    holdings,
+    transactions: state.transactions,
+    dividends: state.dividends,
+    lots: state.lots,
+    portfolioHistory,
+    totalInvested,
+    totalCurrentValue,
+    period,
+  });
+
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -276,61 +293,53 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
             ETF Portfolio Tracker
           </h1>
-          <div className="flex gap-2">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded bg-gray-200 dark:bg-gray-700"
-            >
+          {pricesLastUpdated && (
+            <span className="hidden text-xs text-slate-500 sm:inline dark:text-slate-400">
+              Prices updated {new Date(pricesLastUpdated).toLocaleTimeString()}
+            </span>
+          )}
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button variant="ghost" onClick={toggleTheme} title="Toggle theme" className="w-10 px-0">
               {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-            </button>
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className="p-2 rounded bg-gray-200 dark:bg-gray-700"
-              title="ETF Settings"
-            >
+            </Button>
+            <Button variant="ghost" onClick={() => setShowSettings(!showSettings)} title="ETF Settings" className="w-10 px-0">
               <Settings size={18} />
-            </button>
-            <button
-              onClick={() => void handleExport()}
-              className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
-            >
-              <Download size={14} className="inline mr-1" /> Download .db
-            </button>
-            <button
-              onClick={() => exportTransactionsToCSV(state.transactions)}
-              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-            >
-              <FileSpreadsheet size={14} className="inline mr-1" /> CSV
-            </button>
-            <button
+            </Button>
+            <Button variant="secondary" onClick={() => void handleExport()} title="Download .db">
+              <Download size={14} />
+              <span className="hidden md:inline">Download .db</span>
+            </Button>
+            <Button variant="secondary" onClick={() => exportTransactionsToCSV(state.transactions)} title="Export CSV">
+              <FileSpreadsheet size={14} />
+              <span className="hidden md:inline">CSV</span>
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() =>
                 exportTaxLotReportToCSV(
                   state.transactions,
                   state.targetAlloc.holdingPeriodDays ?? 365,
                 )
               }
-              className="bg-emerald-600 text-white px-3 py-1 rounded text-sm hover:bg-emerald-700"
+              title="Tax lot report (CSV)"
             >
-              Tax lot report (CSV)
-            </button>
-            <button
-              onClick={emailBackup}
-              className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-            >
-              <Mail size={14} className="inline mr-1" /> Backup
-            </button>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
-            >
-              <Upload size={14} className="inline mr-1" /> Import
-            </button>
+              <FileSpreadsheet size={14} />
+              <span className="hidden md:inline">Tax lot report</span>
+            </Button>
+            <Button variant="secondary" onClick={emailBackup} title="Backup JSON">
+              <Mail size={14} />
+              <span className="hidden md:inline">Backup</span>
+            </Button>
+            <Button variant="secondary" onClick={() => fileInputRef.current?.click()} title="Import .db">
+              <Upload size={14} />
+              <span className="hidden md:inline">Import</span>
+            </Button>
             <input
               type="file"
               ref={fileInputRef}
@@ -338,15 +347,15 @@ function App() {
               accept=".db"
               className="hidden"
             />
-            <button
-              onClick={requestNotificationPermission}
-              className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
-            >
-              <Bell size={14} className="inline mr-1" /> Notify
-            </button>
+            <Button variant="secondary" onClick={requestNotificationPermission} title="Enable notifications">
+              <Bell size={14} />
+              <span className="hidden md:inline">Notify</span>
+            </Button>
           </div>
         </div>
+      </header>
 
+      <main className="mx-auto max-w-7xl px-4 py-6">
         {showSettings && (
           <div className="mb-6">
             <EtfManager
@@ -357,121 +366,116 @@ function App() {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2">
-            <PortfolioSummary
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <section>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                  Performance
+                </h2>
+                <SegmentedControl
+                  ariaLabel="Performance range"
+                  value={period}
+                  onChange={setPeriod}
+                  options={[
+                    { value: "1M", label: "1M" },
+                    { value: "3M", label: "3M" },
+                    { value: "1Y", label: "1Y" },
+                    { value: "5Y", label: "5Y" },
+                    { value: "ITD", label: "ITD" },
+                  ]}
+                />
+              </div>
+              <KpiGrid metrics={metrics} period={period} />
+            </section>
+
+            <HoldingsTable
               holdings={holdings}
-              transactions={state.transactions}
-              totalInvested={totalInvested}
-              totalCurrentValue={totalCurrentValue}
-              dividends={state.dividends}
               targetAlloc={state.targetAlloc}
-              lots={state.lots}
-              etfConfigs={state.etfConfigs}
-              portfolioHistory={portfolioHistory}
+              enabledSymbols={enabledSymbols}
               pricesLastUpdated={pricesLastUpdated}
             />
+
+            <Suspense fallback={<ChartSkeleton />}>
+              <PortfolioValueChart
+                transactions={state.transactions}
+                etfConfigs={state.etfConfigs}
+              />
+            </Suspense>
+
+            {historyDates.from && (
+              <Suspense fallback={<ChartSkeleton />}>
+                <BenchmarkChart
+                  portfolioHistory={portfolioHistory}
+                  fromDate={historyDates.from}
+                  toDate={historyDates.to}
+                />
+              </Suspense>
+            )}
+
+            <AllocationChart current={currentAlloc} target={state.targetAlloc.alloc} />
+
+            <CorporateActionForm
+              dividends={state.dividends}
+              currentPrices={prices}
+              etfConfigs={state.etfConfigs}
+              onApplyCorporateAction={applyCorporateAction}
+            />
+
+            <TransactionForm
+              onAdd={(tx) => {
+                addTransaction(tx);
+                setSuggestedTransaction(null);
+              }}
+              currentPrices={prices}
+              lots={state.lots}
+              etfConfigs={state.etfConfigs}
+              initialSuggestion={suggestedTransaction}
+            />
+
+            <TransactionList
+              transactions={state.transactions}
+              onDelete={deleteTransaction}
+            />
           </div>
-          <div>
+
+          <div className="space-y-6">
             <TargetAllocEditor
               targetAlloc={state.targetAlloc}
               enabledSymbols={enabledSymbols}
               onUpdate={updateTargetAlloc}
             />
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <Suspense fallback={<ChartSkeleton />}>
-            <PortfolioValueChart
-              transactions={state.transactions}
-              etfConfigs={state.etfConfigs}
+            <RebalanceSuggestions
+              holdings={holdings}
+              targetAlloc={state.targetAlloc}
+              enabledSymbols={enabledSymbols}
             />
-          </Suspense>
-        </div>
-
-        {historyDates.from && (
-          <div className="mb-6">
-            <Suspense fallback={<ChartSkeleton />}>
-              <BenchmarkChart
-                portfolioHistory={portfolioHistory}
-                fromDate={historyDates.from}
-                toDate={historyDates.to}
-              />
-            </Suspense>
+            <FortnightlyPlanner
+              holdings={holdings}
+              reminderSchedule={state.reminderSchedules[0] ?? null}
+              onReminderScheduleChange={upsertReminderSchedule}
+              fortnightlyTargetAlloc={
+                state.fortnightlyTargetAlloc ?? { VAS: 40, VGS: 60 }
+              }
+              onUpdateFortnightlyTarget={updateFortnightlyTarget}
+              etfConfigs={state.etfConfigs}
+              onUseSuggestion={(etf, amount) => {
+                setSuggestedTransaction({ etf, amount });
+              }}
+            />
+            <DividendForm onAdd={addDividend} etfConfigs={state.etfConfigs} />
+            <DividendList dividends={state.dividends} onDelete={deleteDividend} />
+            <PriceAlertSetup
+              alerts={state.priceAlerts}
+              currentPrices={prices}
+              etfConfigs={state.etfConfigs}
+              onAdd={addPriceAlert}
+              onUpdate={updatePriceAlert}
+              onDelete={deletePriceAlert}
+            />
           </div>
-        )}
-
-        <div className="mb-6">
-          <AllocationChart
-            current={currentAlloc}
-            target={state.targetAlloc.alloc}
-          />
         </div>
-
-        <div className="mb-6">
-          <RebalanceSuggestions
-            holdings={holdings}
-            targetAlloc={state.targetAlloc}
-            enabledSymbols={enabledSymbols}
-          />
-        </div>
-
-        <div className="mb-6">
-          <FortnightlyPlanner
-            holdings={holdings}
-            reminderSchedule={state.reminderSchedules[0] ?? null}
-            onReminderScheduleChange={upsertReminderSchedule}
-            fortnightlyTargetAlloc={
-              state.fortnightlyTargetAlloc ?? { VAS: 40, VGS: 60 }
-            }
-            onUpdateFortnightlyTarget={updateFortnightlyTarget}
-            etfConfigs={state.etfConfigs}
-            onUseSuggestion={(etf, amount) => {
-              setSuggestedTransaction({ etf, amount });
-            }}
-          />
-        </div>
-
-        <div className="mb-6">
-          <CorporateActionForm
-            dividends={state.dividends}
-            currentPrices={prices}
-            etfConfigs={state.etfConfigs}
-            onApplyCorporateAction={applyCorporateAction}
-          />
-        </div>
-
-        <div className="mb-6">
-          <TransactionForm
-            onAdd={(tx) => {
-              addTransaction(tx);
-              setSuggestedTransaction(null);
-            }}
-            currentPrices={prices}
-            lots={state.lots}
-            etfConfigs={state.etfConfigs}
-            initialSuggestion={suggestedTransaction}
-          />
-        </div>
-
-        <TransactionList
-          transactions={state.transactions}
-          onDelete={deleteTransaction}
-        />
-
-        <DividendForm onAdd={addDividend} etfConfigs={state.etfConfigs} />
-        <DividendList dividends={state.dividends} onDelete={deleteDividend} />
-
-        <PriceAlertSetup
-          alerts={state.priceAlerts}
-          currentPrices={prices}
-          etfConfigs={state.etfConfigs}
-          onAdd={addPriceAlert}
-          onUpdate={updatePriceAlert}
-          onDelete={deletePriceAlert}
-        />
-      </div>
+      </main>
     </div>
   );
 }
