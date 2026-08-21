@@ -100,6 +100,9 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [period, setPeriod] = useState<ReturnPeriod>("1Y");
   const [txTab, setTxTab] = useState<"history" | "add">("history");
+  const [sidebarTab, setSidebarTab] = useState<
+    "planner" | "rebalance" | "targets" | "corp" | "dividends" | "alerts"
+  >("planner");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
 
@@ -415,13 +418,6 @@ function App() {
 
             <AllocationChart current={currentAlloc} target={state.targetAlloc.alloc} />
 
-            <CorporateActionForm
-              dividends={state.dividends}
-              currentPrices={prices}
-              etfConfigs={state.etfConfigs}
-              onApplyCorporateAction={applyCorporateAction}
-            />
-
             <Card>
               <Tabs
                 ariaLabel="Transaction views"
@@ -455,41 +451,81 @@ function App() {
             </Card>
           </div>
 
-          <div className="space-y-6">
-            <TargetAllocEditor
-              targetAlloc={state.targetAlloc}
-              enabledSymbols={enabledSymbols}
-              onUpdate={updateTargetAlloc}
-            />
-            <RebalanceSuggestions
-              holdings={holdings}
-              targetAlloc={state.targetAlloc}
-              enabledSymbols={enabledSymbols}
-            />
-            <FortnightlyPlanner
-              holdings={holdings}
-              reminderSchedule={state.reminderSchedules[0] ?? null}
-              onReminderScheduleChange={upsertReminderSchedule}
-              fortnightlyTargetAlloc={
-                state.fortnightlyTargetAlloc ?? { VAS: 40, VGS: 60 }
-              }
-              onUpdateFortnightlyTarget={updateFortnightlyTarget}
-              etfConfigs={state.etfConfigs}
-              onUseSuggestion={(etf, amount) => {
-                setSuggestedTransaction({ etf, amount });
-                setTxTab("add");
-              }}
-            />
-            <DividendForm onAdd={addDividend} etfConfigs={state.etfConfigs} />
-            <DividendList dividends={state.dividends} onDelete={deleteDividend} />
-            <PriceAlertSetup
-              alerts={state.priceAlerts}
-              currentPrices={prices}
-              etfConfigs={state.etfConfigs}
-              onAdd={addPriceAlert}
-              onUpdate={updatePriceAlert}
-              onDelete={deletePriceAlert}
-            />
+          <div>
+            <Card className="lg:sticky lg:top-24">
+              <Tabs
+                ariaLabel="Tools"
+                tabs={[
+                  { id: "planner", label: "Planner" },
+                  { id: "rebalance", label: "Rebalance" },
+                  { id: "targets", label: "Targets" },
+                  { id: "corp", label: "Corp Actions" },
+                  { id: "dividends", label: "Dividends" },
+                  { id: "alerts", label: "Alerts" },
+                ]}
+                active={sidebarTab}
+                onChange={(id) => setSidebarTab(id as typeof sidebarTab)}
+              />
+              <div className="pt-4">
+                {sidebarTab === "planner" && (
+                  <FortnightlyPlanner
+                    holdings={holdings}
+                    reminderSchedule={state.reminderSchedules[0] ?? null}
+                    onReminderScheduleChange={upsertReminderSchedule}
+                    fortnightlyTargetAlloc={
+                      state.fortnightlyTargetAlloc ?? { VAS: 40, VGS: 60 }
+                    }
+                    onUpdateFortnightlyTarget={updateFortnightlyTarget}
+                    etfConfigs={state.etfConfigs}
+                    onUseSuggestion={(etf, amount) => {
+                      setSuggestedTransaction({ etf, amount });
+                      setTxTab("add");
+                    }}
+                  />
+                )}
+                {sidebarTab === "rebalance" && (
+                  <RebalanceSuggestions
+                    holdings={holdings}
+                    targetAlloc={state.targetAlloc}
+                    enabledSymbols={enabledSymbols}
+                  />
+                )}
+                {sidebarTab === "targets" && (
+                  <TargetAllocEditor
+                    targetAlloc={state.targetAlloc}
+                    enabledSymbols={enabledSymbols}
+                    onUpdate={updateTargetAlloc}
+                  />
+                )}
+                {sidebarTab === "corp" && (
+                  <CorporateActionForm
+                    dividends={state.dividends}
+                    currentPrices={prices}
+                    etfConfigs={state.etfConfigs}
+                    onApplyCorporateAction={applyCorporateAction}
+                  />
+                )}
+                {sidebarTab === "dividends" && (
+                  <div className="space-y-4">
+                    <DividendForm onAdd={addDividend} etfConfigs={state.etfConfigs} />
+                    <DividendList
+                      dividends={state.dividends}
+                      onDelete={deleteDividend}
+                    />
+                  </div>
+                )}
+                {sidebarTab === "alerts" && (
+                  <PriceAlertSetup
+                    alerts={state.priceAlerts}
+                    currentPrices={prices}
+                    etfConfigs={state.etfConfigs}
+                    onAdd={addPriceAlert}
+                    onUpdate={updatePriceAlert}
+                    onDelete={deletePriceAlert}
+                  />
+                )}
+              </div>
+            </Card>
           </div>
         </div>
       </main>
