@@ -76,7 +76,7 @@ export function BenchmarkChart({ portfolioHistory, fromDate, toDate }: Props) {
         <LineChart data={merged}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
-          <YAxis tickFormatter={(v) => `${v.toFixed(0)}`} />
+          <YAxis width={70} tickFormatter={(v) => `${Number(v).toFixed(0)}`} />
           <Tooltip
             content={<ChartTooltip formatter={(v) => v.toFixed(1)} />}
           />

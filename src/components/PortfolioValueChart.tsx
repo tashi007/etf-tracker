@@ -10,6 +10,7 @@ import {
 import { Card } from "./ui/Card";
 import { ChartTooltip } from "./ui/ChartTooltip";
 import { DailyValuation, ReturnPeriod } from "../utils/returns";
+import { moneyCompact } from "../utils/money";
 import { filterHistoryByPeriod } from "../utils/historyRange";
 
 interface Props {
@@ -33,7 +34,7 @@ export function PortfolioValueChart({ history, period }: Props) {
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="date" />
-              <YAxis tickFormatter={(v) => `$${v}`} />
+              <YAxis width={70} tickFormatter={moneyCompact} />
               <Tooltip
                 content={<ChartTooltip formatter={(v) => `$${v.toFixed(2)}`} />}
               />
