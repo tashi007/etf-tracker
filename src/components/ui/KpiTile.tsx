@@ -17,14 +17,16 @@ interface Props {
 
 export function KpiTile({ label, value, trend = "neutral", badge }: Props) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        <p className="min-w-0 truncate text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
           {label}
         </p>
         {badge}
       </div>
-      <p className={`mt-2 truncate text-3xl font-bold ${trendClasses[trend]}`}>
+      <p
+        className={`mt-2 truncate text-2xl font-bold tabular-nums 2xl:text-3xl ${trendClasses[trend]}`}
+      >
         {value}
       </p>
     </div>

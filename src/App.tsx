@@ -100,6 +100,9 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [period, setPeriod] = useState<ReturnPeriod>("1Y");
   const [txTab, setTxTab] = useState<"history" | "add">("history");
+  const [chartTab, setChartTab] = useState<
+    "value" | "benchmark" | "allocation"
+  >("value");
   const [sidebarTab, setSidebarTab] = useState<
     "planner" | "rebalance" | "targets" | "corp" | "dividends" | "alerts"
   >("planner");
@@ -301,7 +304,7 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
           <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
             ETF Portfolio Tracker
           </h1>
@@ -361,7 +364,7 @@ function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6">
+      <main className="px-4 py-6">
         {showSettings && (
           <div className="mb-6">
             <EtfManager
@@ -402,21 +405,56 @@ function App() {
               pricesLastUpdated={pricesLastUpdated}
             />
 
-            <Suspense fallback={<ChartSkeleton />}>
-              <PortfolioValueChart history={portfolioHistory} period={period} />
-            </Suspense>
-
-            {historyDates.from && (
-              <Suspense fallback={<ChartSkeleton />}>
-                <BenchmarkChart
-                  portfolioHistory={portfolioHistory}
-                  fromDate={historyDates.from}
-                  toDate={historyDates.to}
-                />
-              </Suspense>
-            )}
-
-            <AllocationChart current={currentAlloc} target={state.targetAlloc.alloc} />
+            <div>
+              <Tabs
+                ariaLabel="Chart views"
+                tabs={[
+                  { id: "value", label: "Portfolio Value" },
+                  { id: "benchmark", label: "vs S&P 500 (IVV)" },
+                  { id: "allocation", label: "Allocation" },
+                ]}
+                active={chartTab}
+                onChange={(id) =>
+                  setChartTab(
+                    id === "benchmark"
+                      ? "benchmark"
+                      : id === "allocation"
+                        ? "allocation"
+                        : "value",
+                  )
+                }
+              />
+              <div className="pt-4">
+                {chartTab === "value" && (
+                  <Suspense fallback={<ChartSkeleton />}>
+                    <PortfolioValueChart
+                      history={portfolioHistory}
+                      period={period}
+                    />
+                  </Suspense>
+                )}
+                {chartTab === "benchmark" &&
+                  (historyDates.from ? (
+                    <Suspense fallback={<ChartSkeleton />}>
+                      <BenchmarkChart
+                        portfolioHistory={portfolioHistory}
+                        fromDate={historyDates.from}
+                        toDate={historyDates.to}
+                      />
+                    </Suspense>
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Add transactions to compare against the benchmark.
+                    </p>
+                  ))}
+                {chartTab === "allocation" && (
+                  <AllocationChart
+                    current={currentAlloc}
+                    target={state.targetAlloc.alloc}
+                  />
+                )}
+              </div>
+            </div>
 
             <Card>
               <Tabs
