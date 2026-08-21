@@ -110,7 +110,17 @@ export function ProjectionChart({ holdings, fortnightlyContribution }: Props) {
             dataKey="year"
             tickFormatter={(value) => `${Number(value).toFixed(0)}y`}
           />
-          <YAxis tickFormatter={(value) => `$${Number(value).toFixed(0)}`} />
+          <YAxis
+            width={70}
+            tickFormatter={(value) => {
+              const v = Number(value);
+              const abs = Math.abs(v);
+              if (abs >= 1_000_000)
+                return `$${(v / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 2)}m`;
+              if (abs >= 1_000) return `$${(v / 1_000).toFixed(0)}k`;
+              return `$${v.toFixed(0)}`;
+            }}
+          />
           <Tooltip
             content={<ChartTooltip formatter={(v) => `$${v.toFixed(2)}`} />}
           />

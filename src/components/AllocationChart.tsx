@@ -3,7 +3,6 @@ import {
   Pie,
   Cell,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import { Card } from "./ui/Card";
@@ -48,14 +47,18 @@ export function AllocationChart({ current, target }: Props) {
           <Tooltip
             content={<ChartTooltip formatter={(v) => `${v.toFixed(1)}%`} />}
           />
-          <Legend />
         </PieChart>
       </ResponsiveContainer>
-      <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-300">
-        {data.map((item) => (
-          <div key={item.name} className="flex justify-between">
-            <span className="font-medium">{item.name}:</span>
-            <span>
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-slate-600 dark:text-slate-300">
+        {data.map((item, index) => (
+          <div key={item.name} className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: COLORS[index % COLORS.length] }}
+            />
+            <span className="font-medium">{item.name}</span>
+            <span className="ml-auto tabular-nums">
               {item.current.toFixed(1)}% (target {item.target}%)
             </span>
           </div>
