@@ -14,18 +14,18 @@ export function DividendList({ dividends, onDelete }: Props) {
   );
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mt-4">
+    <div>
       <div className="flex justify-between items-center mb-3">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
           Dividend History
         </h3>
-        <span className="text-sm text-gray-600 dark:text-gray-300">
+        <span className="text-sm text-slate-500 dark:text-slate-400">
           Total: ${totalDividends.toFixed(2)}
         </span>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
         <table className="w-full text-sm">
-          <thead className="border-b dark:border-gray-700">
+          <thead className="sticky top-0 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
             <tr>
               <th className="text-left py-2">Ex Date</th>
               <th>ETF</th>
@@ -38,21 +38,28 @@ export function DividendList({ dividends, onDelete }: Props) {
           </thead>
           <tbody>
             {sorted.map((d) => (
-              <tr key={d.id} className="border-b dark:border-gray-700">
+              <tr
+                key={d.id}
+                className="border-t border-slate-100 dark:border-slate-800"
+              >
                 <td className="py-2">{d.exDate}</td>
                 <td>{d.etf}</td>
-                <td className="text-right">${d.amountPerUnit.toFixed(2)}</td>
-                <td className="text-right">{d.unitsHeldAtExDate}</td>
-                <td className="text-right">
+                <td className="text-right tabular-nums text-slate-600 dark:text-slate-300">
+                  ${d.amountPerUnit.toFixed(2)}
+                </td>
+                <td className="text-right tabular-nums text-slate-600 dark:text-slate-300">
+                  {d.unitsHeldAtExDate}
+                </td>
+                <td className="text-right tabular-nums text-slate-600 dark:text-slate-300">
                   ${(d.amountPerUnit * d.unitsHeldAtExDate).toFixed(2)}
                 </td>
-                <td className="text-right">
+                <td className="text-right tabular-nums text-slate-600 dark:text-slate-300">
                   {d.frankingCredits ? `$${d.frankingCredits.toFixed(2)}` : "-"}
                 </td>
                 <td className="text-center">
                   <button
                     onClick={() => onDelete(d.id)}
-                    className="text-red-500"
+                    className="text-rose-500 hover:text-rose-700 dark:text-rose-400"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -61,7 +68,10 @@ export function DividendList({ dividends, onDelete }: Props) {
             ))}
             {dividends.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-gray-500">
+                <td
+                  colSpan={7}
+                  className="text-center py-4 text-slate-500 dark:text-slate-400"
+                >
                   No dividends recorded.
                 </td>
               </tr>

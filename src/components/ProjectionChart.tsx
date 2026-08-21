@@ -10,6 +10,8 @@ import {
   YAxis,
 } from "recharts";
 import { Holding } from "../types";
+import { ChartTooltip } from "./ui/ChartTooltip";
+import { Input } from "./ui/Field";
 
 interface Props {
   holdings: Holding[];
@@ -77,11 +79,13 @@ export function ProjectionChart({ holdings, fortnightlyContribution }: Props) {
   }, [expectedReturn, fortnightlyContribution, startValue]);
 
   return (
-    <div className="mt-4 rounded-lg bg-white p-4 shadow">
+    <div className="mt-4">
       <div className="mb-3 flex flex-wrap items-end gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Projection</h3>
-          <p className="text-sm text-gray-500">
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+            Projection
+          </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Starts from current portfolio value of ${startValue.toFixed(2)}.
           </p>
         </div>
@@ -89,13 +93,13 @@ export function ProjectionChart({ holdings, fortnightlyContribution }: Props) {
           <label className="block text-sm font-medium mb-1">
             Expected annual return (%)
           </label>
-          <input
+          <Input
             type="number"
             step="0.1"
             min="0"
             value={expectedReturn}
             onChange={(event) => setExpectedReturn(Number(event.target.value))}
-            className="border rounded p-2 w-32"
+            className="w-32"
           />
         </div>
       </div>
@@ -107,7 +111,9 @@ export function ProjectionChart({ holdings, fortnightlyContribution }: Props) {
             tickFormatter={(value) => `${Number(value).toFixed(0)}y`}
           />
           <YAxis tickFormatter={(value) => `$${Number(value).toFixed(0)}`} />
-          <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
+          <Tooltip
+            content={<ChartTooltip formatter={(v) => `$${v.toFixed(2)}`} />}
+          />
           <Legend />
           <Line
             type="monotone"
@@ -120,14 +126,14 @@ export function ProjectionChart({ holdings, fortnightlyContribution }: Props) {
           <Line
             type="monotone"
             dataKey="value20"
-            stroke="#3b82f6"
+            stroke="#4f46e5"
             strokeWidth={2}
             dot={false}
             name="20 years"
           />
         </LineChart>
       </ResponsiveContainer>
-      <p className="text-xs text-gray-500 mt-2">
+      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
         Assumes fortnightly contributions are invested at the expected return
         rate.
       </p>

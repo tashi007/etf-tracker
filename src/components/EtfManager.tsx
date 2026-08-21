@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { EtfConfig } from "../types";
 import { Plus, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
+import { Button } from "./ui/Button";
+import { Card } from "./ui/Card";
 
 interface Props {
   etfConfigs: EtfConfig[];
@@ -72,16 +74,12 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-        ETF Configuration
-      </h3>
-
+    <Card title="ETF Configuration">
       <div className="space-y-2 mb-4">
         {etfConfigs.map((etf) => (
           <div
             key={etf.symbol}
-            className="flex items-center gap-2 py-2 border-b dark:border-gray-700"
+            className="flex items-center gap-2 py-2 border-b border-slate-100 dark:border-slate-800"
           >
             <button
               onClick={() => handleToggle(etf.symbol)}
@@ -89,7 +87,7 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
               title={etf.enabled ? "Disable" : "Enable"}
             >
               {etf.enabled ? (
-                <ToggleRight size={20} className="text-green-600" />
+                <ToggleRight size={20} className="text-emerald-600" />
               ) : (
                 <ToggleLeft size={20} className="text-gray-400" />
               )}
@@ -105,7 +103,7 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
               onChange={(e) =>
                 handleYahooSymbolChange(etf.symbol, e.target.value)
               }
-              className="border rounded px-2 py-1 text-sm w-28 dark:bg-gray-700 dark:border-gray-600"
+              className="rounded-lg border px-2 py-1 text-sm w-28 dark:bg-slate-900 dark:border-slate-700"
               title="Yahoo Finance symbol"
             />
             <input
@@ -118,7 +116,7 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
                   ),
                 )
               }
-              className="border rounded px-2 py-1 text-sm flex-1 dark:bg-gray-700 dark:border-gray-600"
+              className="rounded-lg border px-2 py-1 text-sm flex-1 dark:bg-slate-900 dark:border-slate-700"
               placeholder="Name"
             />
             <button
@@ -143,14 +141,14 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
               setError("");
             }}
             placeholder="e.g. IVV"
-            className="border rounded px-2 py-1 text-sm w-24 dark:bg-gray-700 dark:border-gray-600"
+            className="rounded-lg border px-2 py-1 text-sm w-24 dark:bg-slate-900 dark:border-slate-700"
           />
         </div>
         <div>
           <label className="block text-xs text-gray-500 mb-1">
             Yahoo symbol
           </label>
-          <span className="border rounded px-2 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-500 w-28 inline-block">
+          <span className="rounded-lg border px-2 py-1 text-sm bg-slate-100 dark:bg-slate-800 text-gray-500 w-28 inline-block">
             {newSymbol.trim() ? `${newSymbol.trim().toUpperCase()}.AX` : "?.AX"}
           </span>
         </div>
@@ -161,17 +159,16 @@ export function EtfManager({ etfConfigs, onUpdate, transactionCount }: Props) {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="Optional name"
-            className="border rounded px-2 py-1 text-sm w-36 dark:bg-gray-700 dark:border-gray-600"
+            className="rounded-lg border px-2 py-1 text-sm w-36 dark:bg-slate-900 dark:border-slate-700"
           />
         </div>
-        <button
-          onClick={handleAdd}
-          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center gap-1"
-        >
+        <Button onClick={handleAdd} className="px-3">
           <Plus size={14} /> Add
-        </button>
+        </Button>
       </div>
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-    </div>
+      {error && (
+        <p className="text-rose-600 dark:text-rose-400 text-xs mt-1">{error}</p>
+      )}
+    </Card>
   );
 }
