@@ -1,6 +1,38 @@
 import type { Plugin } from "vite";
 import type { IncomingMessage, ServerResponse } from "http";
 import { URL } from "url";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
+import { join } from "path";
+
+const DEV_VAULT_FILE = join(process.cwd(), ".dev-data", "portfolio.db");
+
+function handleVaultGet(res: ServerResponse) {
+  try {
+    const bytes = readFileSync(DEV_VAULT_FILE);
+    res.writeHead(200, { "Content-Type": "application/octet-stream" });
+    res.end(bytes);
+  } catch {
+    res.writeHead(404);
+    res.end();
+  }
+}
+
+function handleVaultPut(req: IncomingMessage, res: ServerResponse) {
+  const chunks: Buffer[] = [];
+  req.on("data", (chunk) => chunks.push(chunk as Buffer));
+  req.on("end", () => {
+    try {
+      mkdirSync(join(DEV_VAULT_FILE, ".."), { recursive: true });
+      writeFileSync(DEV_VAULT_FILE, Buffer.concat(chunks));
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true }));
+    } catch (error) {
+      console.error("Dev vault save error:", error);
+      res.writeHead(500);
+      res.end();
+    }
+  });
+}
 
 function parseSymbols(req: IncomingMessage): string[] {
   const urlObj = new URL(req.url!, `http://${req.headers.host}`);
@@ -114,6 +146,14 @@ export function apiPlugin(): Plugin {
       });
       server.middlewares.use("/api/historical/", (req, res, next) => {
         if (req.method === "GET") handleHistorical(req, res).catch(next);
+        else {
+          res.writeHead(405);
+          res.end();
+        }
+      });
+      server.middlewares.use("/api/local/vault", (req, res) => {
+        if (req.method === "GET") handleVaultGet(res);
+        else if (req.method === "PUT") handleVaultPut(req, res);
         else {
           res.writeHead(405);
           res.end();

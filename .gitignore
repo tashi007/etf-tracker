@@ -40,3 +40,5 @@ vite-plugin-api.d.ts
 .agents/
 .superpowers/
 skills-lock.json
+
+.dev-data/
