@@ -5,6 +5,7 @@ import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
 import { Card } from "./ui/Card";
 import { Input, Select } from "./ui/Field";
+import { Modal } from "./ui/Modal";
 import {
   filterTransactions,
   paginateTransactions,
@@ -37,6 +38,7 @@ export function TransactionList({ transactions, onDelete }: Props) {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number | "all">(20);
+  const [pendingDelete, setPendingDelete] = useState<Transaction | null>(null);
 
   const filtered = filterTransactions(transactions, search);
   const sorted = sortTransactions(filtered, sortKey, sortDirection);
@@ -163,7 +165,7 @@ export function TransactionList({ transactions, onDelete }: Props) {
                 </td>
                 <td className="px-3 py-2 text-center">
                   <button
-                    onClick={() => onDelete(tx.id)}
+                    onClick={() => setPendingDelete(tx)}
                     className="text-rose-500 hover:text-rose-700 dark:text-rose-400"
                     title="Delete transaction"
                   >
@@ -214,6 +216,34 @@ export function TransactionList({ transactions, onDelete }: Props) {
           </Button>
         </div>
       </div>
+
+      <Modal
+        open={pendingDelete !== null}
+        title="Delete Transaction"
+        onClose={() => setPendingDelete(null)}
+      >
+        <p className="text-sm text-slate-600 dark:text-slate-300">
+          Delete {pendingDelete?.type} of {pendingDelete?.units.toFixed(4)}{" "}
+          {pendingDelete?.etf} on {pendingDelete?.date}? This cannot be undone.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => setPendingDelete(null)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              if (pendingDelete) onDelete(pendingDelete.id);
+              setPendingDelete(null);
+            }}
+          >
+            Delete
+          </Button>
+        </div>
+      </Modal>
     </Card>
   );
 }
