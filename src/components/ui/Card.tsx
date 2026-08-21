@@ -10,7 +10,7 @@ interface Props {
 export function Card({ title, actions, children, className = "" }: Props) {
   return (
     <section
-      className={`rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}
+      className={`relative rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 ${className}`}
     >
       {(title || actions) && (
         <div className="flex items-center justify-between px-5 pt-4">

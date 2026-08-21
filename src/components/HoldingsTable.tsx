@@ -1,5 +1,6 @@
 import { Badge } from "./ui/Badge";
 import { Card } from "./ui/Card";
+import { InfoPopover } from "./ui/InfoPopover";
 import { Holding, TargetAlloc } from "../types";
 import { money } from "../utils/money";
 
@@ -105,6 +106,10 @@ export function HoldingsTable({
         {pricesLastUpdated &&
           ` Prices updated ${new Date(pricesLastUpdated).toLocaleTimeString()}.`}
       </p>
+      <InfoPopover
+        text="Live position sizes and values at latest prices. Drift compares each ETF's actual weight to its target: IN means within tolerance."
+        className="absolute bottom-2 right-2"
+      />
     </Card>
   );
 }

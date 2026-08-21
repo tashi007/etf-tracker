@@ -21,6 +21,7 @@ import { SegmentedControl } from "./components/ui/SegmentedControl";
 import { Tabs } from "./components/ui/Tabs";
 import { Card } from "./components/ui/Card";
 import { Button } from "./components/ui/Button";
+import { InfoPopover } from "./components/ui/InfoPopover";
 import { KpiGrid } from "./components/KpiGrid";
 import { HoldingsTable } from "./components/HoldingsTable";
 import { computePortfolioMetrics } from "./utils/portfolioMetrics";
@@ -405,7 +406,7 @@ function App() {
               pricesLastUpdated={pricesLastUpdated}
             />
 
-            <div>
+            <div className="relative">
               <Tabs
                 ariaLabel="Chart views"
                 tabs={[
@@ -454,6 +455,10 @@ function App() {
                   />
                 )}
               </div>
+              <InfoPopover
+                text="Switch between portfolio value over time, benchmark comparison, and allocation breakdown."
+                className="absolute bottom-2 right-2"
+              />
             </div>
 
             <Card>

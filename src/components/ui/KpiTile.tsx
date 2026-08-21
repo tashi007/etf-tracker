@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { InfoPopover } from "./InfoPopover";
 
 type Trend = "gain" | "loss" | "neutral";
 
@@ -13,11 +14,18 @@ interface Props {
   value: string;
   trend?: Trend;
   badge?: ReactNode;
+  info?: string;
 }
 
-export function KpiTile({ label, value, trend = "neutral", badge }: Props) {
+export function KpiTile({
+  label,
+  value,
+  trend = "neutral",
+  badge,
+  info,
+}: Props) {
   return (
-    <div className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="relative min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between gap-2">
         <p className="min-w-0 truncate text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
           {label}
@@ -29,6 +37,9 @@ export function KpiTile({ label, value, trend = "neutral", badge }: Props) {
       >
         {value}
       </p>
+      {info && (
+        <InfoPopover text={info} className="absolute bottom-2 right-2" />
+      )}
     </div>
   );
 }
