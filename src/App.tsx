@@ -397,10 +397,7 @@ function App() {
             />
 
             <Suspense fallback={<ChartSkeleton />}>
-              <PortfolioValueChart
-                transactions={state.transactions}
-                etfConfigs={state.etfConfigs}
-              />
+              <PortfolioValueChart history={portfolioHistory} period={period} />
             </Suspense>
 
             {historyDates.from && (
