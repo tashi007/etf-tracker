@@ -5,6 +5,10 @@ import { visualizer } from "rollup-plugin-visualizer";
 import { apiPlugin } from "./vite-plugin-api";
 
 export default defineConfig({
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
   plugins: [
     apiPlugin(),
     react(),
