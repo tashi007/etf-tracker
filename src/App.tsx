@@ -22,6 +22,7 @@ import { Tabs } from "./components/ui/Tabs";
 import { Card } from "./components/ui/Card";
 import { Button } from "./components/ui/Button";
 import { InfoPopover } from "./components/ui/InfoPopover";
+import { Modal } from "./components/ui/Modal";
 import { KpiGrid } from "./components/KpiGrid";
 import { HoldingsTable } from "./components/HoldingsTable";
 import { computePortfolioMetrics } from "./utils/portfolioMetrics";
@@ -100,7 +101,9 @@ function App() {
   } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [period, setPeriod] = useState<ReturnPeriod>("1Y");
-  const [txTab, setTxTab] = useState<"history" | "add">("history");
+  const [showAddTx, setShowAddTx] = useState(false);
+  const [txSuccessVisible, setTxSuccessVisible] = useState(false);
+  const txSuccessTimer = useRef<number | null>(null);
   const [chartTab, setChartTab] = useState<
     "value" | "benchmark" | "allocation"
   >("value");
@@ -462,35 +465,50 @@ function App() {
             </div>
 
             <Card>
-              <Tabs
-                ariaLabel="Transaction views"
-                tabs={[
-                  { id: "add", label: "Add Transaction" },
-                  { id: "history", label: "History" },
-                ]}
-                active={txTab}
-                onChange={(id) => setTxTab(id === "add" ? "add" : "history")}
-              />
-              <div className="pt-4">
-                {txTab === "add" ? (
-                  <TransactionForm
-                    onAdd={(tx) => {
-                      addTransaction(tx);
-                      setSuggestedTransaction(null);
-                      setTxTab("history");
-                    }}
-                    currentPrices={prices}
-                    lots={state.lots}
-                    etfConfigs={state.etfConfigs}
-                    initialSuggestion={suggestedTransaction}
-                  />
-                ) : (
-                  <TransactionList
-                    transactions={state.transactions}
-                    onDelete={deleteTransaction}
-                  />
-                )}
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  Transactions
+                </h2>
+                <Button onClick={() => setShowAddTx(true)}>+ Add Transaction</Button>
               </div>
+              {txSuccessVisible && (
+                <p
+                  role="status"
+                  className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300"
+                >
+                  Transaction added.
+                </p>
+              )}
+              <div className="mt-4">
+                <TransactionList
+                  transactions={state.transactions}
+                  onDelete={deleteTransaction}
+                />
+              </div>
+              <Modal
+                open={showAddTx}
+                title="Add Transaction"
+                onClose={() => setShowAddTx(false)}
+              >
+                <TransactionForm
+                  onAdd={(tx) => {
+                    addTransaction(tx);
+                    setSuggestedTransaction(null);
+                    setShowAddTx(false);
+                    if (txSuccessTimer.current !== null)
+                      window.clearTimeout(txSuccessTimer.current);
+                    setTxSuccessVisible(true);
+                    txSuccessTimer.current = window.setTimeout(
+                      () => setTxSuccessVisible(false),
+                      4000,
+                    );
+                  }}
+                  currentPrices={prices}
+                  lots={state.lots}
+                  etfConfigs={state.etfConfigs}
+                  initialSuggestion={suggestedTransaction}
+                />
+              </Modal>
             </Card>
           </div>
 
@@ -522,7 +540,7 @@ function App() {
                     etfConfigs={state.etfConfigs}
                     onUseSuggestion={(etf, amount) => {
                       setSuggestedTransaction({ etf, amount });
-                      setTxTab("add");
+                      setShowAddTx(true);
                     }}
                   />
                 )}
