@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Lot, Transaction, TransactionType, DisposalMethod, EtfConfig } from "../types";
+import { Button } from "./ui/Button";
+import { Field, Input, Select } from "./ui/Field";
 
 interface Props {
   onAdd: (tx: Transaction) => void;
@@ -88,98 +90,71 @@ export function TransactionForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-4 rounded-lg shadow flex flex-wrap gap-3 items-end"
-    >
-      <div>
-        <label htmlFor="tx-etf" className="block text-sm font-medium mb-1">
-          ETF
-        </label>
-        <select
+    <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
+      <Field label="ETF" htmlFor="tx-etf">
+        <Select
           id="tx-etf"
           value={etf}
           onChange={(e) => setEtf(e.target.value)}
-          className="border rounded p-2"
         >
           {enabledEtfs.map((e) => (
             <option key={e.symbol} value={e.symbol}>
               {e.symbol}
             </option>
           ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="tx-type" className="block text-sm font-medium mb-1">
-          Type
-        </label>
-        <select
+        </Select>
+      </Field>
+      <Field label="Type" htmlFor="tx-type">
+        <Select
           id="tx-type"
           value={type}
           onChange={(e) => setType(e.target.value as TransactionType)}
-          className="border rounded p-2"
         >
           <option value="BUY">Buy</option>
           <option value="SELL">Sell</option>
-        </select>
-      </div>
+        </Select>
+      </Field>
       {type === "BUY" ? (
-        <div>
-          <label htmlFor="tx-units" className="block text-sm font-medium mb-1">
-            Units
-          </label>
-          <input
+        <Field label="Units" htmlFor="tx-units">
+          <Input
             id="tx-units"
             type="number"
             value={buyUnits}
             onChange={(e) => setBuyUnits(Number(e.target.value))}
-            className="border rounded p-2 w-24"
+            className="w-24"
             step="1"
             min="1"
           />
-        </div>
+        </Field>
       ) : (
         <div className="flex flex-wrap gap-3 items-end">
-          <div>
-            <label
-              htmlFor="tx-sell-units"
-              className="block text-sm font-medium mb-1"
-            >
-              Units
-            </label>
-            <input
+          <Field label="Units" htmlFor="tx-sell-units">
+            <Input
               id="tx-sell-units"
               type="number"
               value={sellUnits}
               onChange={(e) => setSellUnits(Number(e.target.value))}
-              className="border rounded p-2 w-24"
+              className="w-24"
               step="0.01"
               min="0"
             />
-          </div>
-          <div>
-            <label
-              htmlFor="tx-disposal"
-              className="block text-sm font-medium mb-1"
-            >
-              Lot method
-            </label>
-            <select
+          </Field>
+          <Field label="Lot method" htmlFor="tx-disposal">
+            <Select
               id="tx-disposal"
               value={disposalMethod}
               onChange={(e) =>
                 setDisposalMethod(e.target.value as DisposalMethod)
               }
-              className="border rounded p-2"
             >
               <option value="FIFO">FIFO</option>
               <option value="HIFO">HIFO</option>
               <option value="SPECIFIC">Specific lots</option>
-            </select>
-          </div>
+            </Select>
+          </Field>
           {disposalMethod === "SPECIFIC" && (
             <div className="min-w-64">
-              <label className="block text-sm font-medium mb-1">
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Available lots
               </label>
               <select
@@ -193,7 +168,7 @@ export function TransactionForm({
                     ),
                   )
                 }
-                className="border rounded p-2 w-full min-h-24"
+                className="min-h-24 w-full rounded-lg border border-slate-300 bg-white p-2 text-sm dark:border-slate-700 dark:bg-slate-900"
               >
                 {availableLots.map((lot) => (
                   <option key={lot.id} value={lot.id}>
@@ -204,19 +179,16 @@ export function TransactionForm({
               </select>
             </div>
           )}
-          <div className="text-xs text-gray-500 max-w-sm">
+          <div className="max-w-sm text-xs text-slate-500 dark:text-slate-400">
             {availableLots.length > 0
               ? `${availableLots.length} active lot(s) available for ${etf}.`
               : `No active lots available for ${etf}.`}
           </div>
         </div>
       )}
-      <div>
-        <label htmlFor="tx-price" className="block text-sm font-medium mb-1">
-          Price per unit ($)
-        </label>
+      <Field label="Price per unit ($)" htmlFor="tx-price">
         <div className="flex items-center gap-1">
-          <input
+          <Input
             id="tx-price"
             type="number"
             value={effectivePrice}
@@ -224,7 +196,7 @@ export function TransactionForm({
               setPriceTouched(true);
               setPricePerUnit(e.target.value);
             }}
-            className="border rounded p-2 w-28"
+            className="w-28"
             step="0.01"
             min="0"
             placeholder="Unavailable"
@@ -234,36 +206,31 @@ export function TransactionForm({
             <button
               type="button"
               onClick={() => setPriceTouched(false)}
-              className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+              className="whitespace-nowrap text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
             >
               Use market price
             </button>
           )}
         </div>
-      </div>
-      <div>
-        <label htmlFor="tx-date" className="block text-sm font-medium mb-1">
-          Date
-        </label>
-        <input
+      </Field>
+      <Field label="Date" htmlFor="tx-date">
+        <Input
           id="tx-date"
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="border rounded p-2"
         />
-      </div>
-      <button
+      </Field>
+      <Button
         type="submit"
         disabled={
           !isValidPrice ||
           (type === "BUY" && !isValidBuyUnits) ||
           (type === "SELL" && sellUnits <= 0)
         }
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Add Transaction
-      </button>
+      </Button>
     </form>
   );
 }

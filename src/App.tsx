@@ -18,6 +18,8 @@ import { TransactionForm } from "./components/TransactionForm";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { TransactionList } from "./components/TransactionList";
 import { SegmentedControl } from "./components/ui/SegmentedControl";
+import { Tabs } from "./components/ui/Tabs";
+import { Card } from "./components/ui/Card";
 import { Button } from "./components/ui/Button";
 import { KpiGrid } from "./components/KpiGrid";
 import { HoldingsTable } from "./components/HoldingsTable";
@@ -97,6 +99,7 @@ function App() {
   } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [period, setPeriod] = useState<ReturnPeriod>("1Y");
+  const [txTab, setTxTab] = useState<"history" | "add">("history");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, toggleTheme } = useTheme();
 
@@ -419,21 +422,37 @@ function App() {
               onApplyCorporateAction={applyCorporateAction}
             />
 
-            <TransactionForm
-              onAdd={(tx) => {
-                addTransaction(tx);
-                setSuggestedTransaction(null);
-              }}
-              currentPrices={prices}
-              lots={state.lots}
-              etfConfigs={state.etfConfigs}
-              initialSuggestion={suggestedTransaction}
-            />
-
-            <TransactionList
-              transactions={state.transactions}
-              onDelete={deleteTransaction}
-            />
+            <Card>
+              <Tabs
+                ariaLabel="Transaction views"
+                tabs={[
+                  { id: "add", label: "Add Transaction" },
+                  { id: "history", label: "History" },
+                ]}
+                active={txTab}
+                onChange={(id) => setTxTab(id === "add" ? "add" : "history")}
+              />
+              <div className="pt-4">
+                {txTab === "add" ? (
+                  <TransactionForm
+                    onAdd={(tx) => {
+                      addTransaction(tx);
+                      setSuggestedTransaction(null);
+                      setTxTab("history");
+                    }}
+                    currentPrices={prices}
+                    lots={state.lots}
+                    etfConfigs={state.etfConfigs}
+                    initialSuggestion={suggestedTransaction}
+                  />
+                ) : (
+                  <TransactionList
+                    transactions={state.transactions}
+                    onDelete={deleteTransaction}
+                  />
+                )}
+              </div>
+            </Card>
           </div>
 
           <div className="space-y-6">
@@ -458,6 +477,7 @@ function App() {
               etfConfigs={state.etfConfigs}
               onUseSuggestion={(etf, amount) => {
                 setSuggestedTransaction({ etf, amount });
+                setTxTab("add");
               }}
             />
             <DividendForm onAdd={addDividend} etfConfigs={state.etfConfigs} />
